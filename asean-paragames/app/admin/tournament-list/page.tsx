@@ -1,38 +1,57 @@
 "use client";
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 interface Tournament {
   id: string;
-  logo: string;
   sportName: string;
   competitionName: string;
+  gender: string;
   disabilityType: string;
   schedule: string;
 }
 const initialTournaments: Tournament[] = [
   {
     id: '1',
-    logo: 'LJ',
     sportName: 'Long Jump',
-    competitionName: 'Men’s Long Jump T42',
+    competitionName: "Men's Long Jump T42",
+    gender: 'Male',
     disabilityType: 'Lower Limb Deficiency',
     schedule: '2025-11-01',
   },
-  { id: '2',
-    logo: 'HJ',
+  {
+    id: '2',
     sportName: 'High Jump',
-    competitionName: 'Women’s High Jump T44',
+    competitionName: "Women's High Jump T44",
+    gender: 'Female',
     disabilityType: 'Lower Limb Deficiency',
-    schedule: '2025-11-02',}];
+    schedule: '2025-11-02',
+  }
+];
 export default function HomePage() {
   const [tournaments, setTournaments] = useState<Tournament[]>([]);
-  tournaments.length === 0 && setTournaments(initialTournaments);
+  const [isLoaded, setIsLoaded] = useState(false);
+
+  useEffect(() => {
+    const savedTournaments = localStorage.getItem('tournaments');
+    if (savedTournaments) {
+      setTournaments(JSON.parse(savedTournaments));
+    } else {
+      setTournaments(initialTournaments);
+    }
+    setIsLoaded(true);
+  }, []);
+
+  useEffect(() => {
+    if (isLoaded) {
+      localStorage.setItem('tournaments', JSON.stringify(tournaments));
+    }
+  }, [tournaments, isLoaded]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [formData, setFormData] = useState({
-    logo: '',
     sportName: '',
     competitionName: '',
+    gender: '',
     disabilityType: '',
     schedule: '',
   });
@@ -49,6 +68,7 @@ export default function HomePage() {
     if (
       formData.sportName &&
       formData.competitionName &&
+      formData.gender &&
       formData.disabilityType &&
       formData.schedule
     ) {
@@ -58,9 +78,9 @@ export default function HomePage() {
       };
       setTournaments([...tournaments, newTournament]);
       setFormData({
-        logo: '',
         sportName: '',
         competitionName: '',
+        gender: '',
         disabilityType: '',
         schedule: '',
       });
@@ -83,10 +103,7 @@ export default function HomePage() {
                 key={tournament.id}
                 className="bg-gray-800 rounded-lg p-6 flex items-center gap-6 border border-gray-700 hover:border-gray-600 transition"
               >
-                <div className="w-16 h-16 bg-gray-700 rounded flex items-center justify-center text-gray-500 font-semibold">
-                  {tournament.logo}
-                </div>
-                <div className="flex-1 grid grid-cols-3 gap-4">
+                <div className="flex-1 grid grid-cols-4 gap-4">
                   <div>
                     <p className="text-gray-400 text-sm">{tournament.sportName}</p>
                     <p className="text-gray-400 text-sm mt-2">
@@ -97,6 +114,9 @@ export default function HomePage() {
                     <p className="text-gray-400 text-sm">
                       {tournament.competitionName}
                     </p>
+                  </div>
+                  <div>
+                    <p className="text-gray-400 text-sm">{tournament.gender}</p>
                   </div>
                   <div className="text-right">
                     <p className="text-gray-400 text-sm">{tournament.schedule}</p>
@@ -131,19 +151,7 @@ export default function HomePage() {
             </div>
 
             <div className="space-y-4">
-              {/* <div>
-                <label className="block text-sm text-gray-400 mb-1">Logo</label>
-                <input
-                  type="text"
-                  name="logo"
-                  value={formData.logo}
-                  onChange={handleInputChange}
-                  placeholder="LOGO"
-                  className="w-full bg-gray-700 border border-gray-600 rounded px-3 py-2 text-white placeholder-gray-500 focus:outline-none focus:border-cyan-400"
-                />
-              </div> */}
-
-                <div>
+              <div>
                 <label className="block text-sm text-gray-400 mb-1">Sport Name</label>
                 <select
                   name="sportName"
@@ -151,6 +159,7 @@ export default function HomePage() {
                   onChange={(e) => setFormData((prev) => ({ ...prev, sportName: e.target.value }))}
                   className="w-full bg-gray-700 border border-gray-600 rounded px-3 py-2 text-white focus:outline-none focus:border-cyan-400"
                 >
+                  <option value="">Select Sport</option>
                   <option value="longJump">Long Jump</option>
                   <option value="highJump">High Jump</option>
                   <option value="tripleJump">Triple Jump</option>
@@ -159,6 +168,21 @@ export default function HomePage() {
                   <option value="javelinThrow">Javelin Throw</option>
                 </select>
                 </div>
+
+              <div>
+                <label className="block text-sm text-gray-400 mb-1">Gender Type</label>
+                <select
+                  name="gender"
+                  value={formData.gender}
+                  onChange={(e) => setFormData((prev) => ({ ...prev, gender: e.target.value }))}
+                  className="w-full bg-gray-700 border border-gray-600 rounded px-3 py-2 text-white focus:outline-none focus:border-cyan-400"
+                >
+                  <option value="">Select Gender</option>
+                  <option value="Male">Male</option>
+                  <option value="Female">Female</option>
+                
+                </select>
+              </div>
 
               <div>
                 <label className="block text-sm text-gray-400 mb-1">
@@ -178,14 +202,20 @@ export default function HomePage() {
                 <label className="block text-sm text-gray-400 mb-1">
                   Disability Type
                 </label>
-                <input
-                  type="text"
+                <select
                   name="disabilityType"
                   value={formData.disabilityType}
-                  onChange={handleInputChange}
-                  placeholder="[DISABILITY TYPE]"
-                  className="w-full bg-gray-700 border border-gray-600 rounded px-3 py-2 text-white placeholder-gray-500 focus:outline-none focus:border-cyan-400"
-                />
+                  onChange={(e) => setFormData((prev) => ({ ...prev, disabilityType: e.target.value }))}
+                  className="w-full bg-gray-700 border border-gray-600 rounded px-3 py-2 text-white focus:outline-none focus:border-cyan-400"
+                >
+                  <option value="">Select Disability Type</option>
+                  <option value="Lower Limb Deficiency">Lower Limb Deficiency</option>
+                  <option value="Upper Limb Deficiency">Upper Limb Deficiency</option>
+                  <option value="Visual Impairment">Visual Impairment</option>
+                  <option value="Hearing Impairment">Hearing Impairment</option>
+                  <option value="Intellectual Disability">Intellectual Disability</option>
+                  <option value="Cerebral Palsy">Cerebral Palsy</option>
+                </select>
               </div>
 
               <div>
