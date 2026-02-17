@@ -8,7 +8,7 @@ interface Tournament {
   competitionName: string;
   gender: string;
   disabilityType: string;
-  schedule: string;
+  datetime: string;
 }
 const initialTournaments: Tournament[] = [
   {
@@ -17,7 +17,7 @@ const initialTournaments: Tournament[] = [
     competitionName: "Men's Long Jump T42",
     gender: 'Male',
     disabilityType: 'Lower Limb Deficiency',
-    schedule: '2025-11-01',
+    datetime: '2025-11-01T09:00',
   },
   {
     id: '2',
@@ -25,7 +25,7 @@ const initialTournaments: Tournament[] = [
     competitionName: "Women's High Jump T44",
     gender: 'Female',
     disabilityType: 'Lower Limb Deficiency',
-    schedule: '2025-11-02',
+    datetime: '2025-11-02T10:30',
   }
 ];
 export default function HomePage() {
@@ -53,7 +53,7 @@ export default function HomePage() {
     competitionName: '',
     gender: '',
     disabilityType: '',
-    schedule: '',
+    datetime: '',
   });
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -70,7 +70,7 @@ export default function HomePage() {
       formData.competitionName &&
       formData.gender &&
       formData.disabilityType &&
-      formData.schedule
+      formData.datetime
     ) {
       const newTournament: Tournament = {
         id: (tournaments.length + 1).toString(),
@@ -82,7 +82,7 @@ export default function HomePage() {
         competitionName: '',
         gender: '',
         disabilityType: '',
-        schedule: '',
+        datetime: '',
       });
       setIsModalOpen(false);
     }
@@ -119,7 +119,12 @@ export default function HomePage() {
                     <p className="text-gray-400 text-sm">{tournament.gender}</p>
                   </div>
                   <div className="text-right">
-                    <p className="text-gray-400 text-sm">{tournament.schedule}</p>
+                    <p className="text-gray-400 text-sm">
+                      {new Date(tournament.datetime).toLocaleDateString()}
+                    </p>
+                    <p className="text-gray-400 text-sm mt-1">
+                      {new Date(tournament.datetime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                    </p>
                   </div>
                 </div>
               </div>
@@ -219,11 +224,11 @@ export default function HomePage() {
               </div>
 
               <div>
-                <label className="block text-sm text-gray-400 mb-1">Schedule</label>
+                <label className="block text-sm text-gray-400 mb-1">Schedule & Time</label>
                 <input
-                  type="date"
-                  name="schedule"
-                  value={formData.schedule}
+                  type="datetime-local"
+                  name="datetime"
+                  value={formData.datetime}
                   onChange={handleInputChange}
                   className="w-full bg-gray-700 border border-gray-600 rounded px-3 py-2 text-white focus:outline-none focus:border-cyan-400"
                 />
