@@ -1,0 +1,172 @@
+"use client";
+
+import { useState } from "react";
+import styles from "./AdminTicket.module.css";
+
+type Athlete = {
+  id: number;
+  date: string;
+  name: string;
+  sex: string;
+  weight: number;
+  height: number;
+  disability: string;
+};
+
+const mockData: Athlete[] = [
+  {
+    id: 1,
+    date: "16/01/2028",
+    name: "Test 1",
+    sex: "Male",
+    weight: 60,
+    height: 170,
+    disability: "Visual Impair",
+  },
+  {
+    id: 2,
+    date: "16/01/2028",
+    name: "Test 2",
+    sex: "Female",
+    weight: 55,
+    height: 165,
+    disability: "Hearing Impair",
+  },
+  {
+    id: 3,
+    date: "17/01/2028",
+    name: "Test 3",
+    sex: "Male",
+    weight: 68,
+    height: 178,
+    disability: "Visual Impair",
+  },
+];
+
+export default function AdminTicketPage() {
+  const [athletes, setAthletes] = useState<Athlete[]>(mockData);
+  const [selected, setSelected] = useState<number[]>([]);
+  const [showFilter, setShowFilter] = useState(false);
+
+  const toggleSelect = (id: number) => {
+    setSelected((prev) =>
+      prev.includes(id)
+        ? prev.filter((v) => v !== id)
+        : [...prev, id]
+    );
+  };
+
+  const acceptSelected = () => {
+    setAthletes((prev) => prev.filter(a => !selected.includes(a.id)));
+    setSelected([]);
+    alert("Accepted");
+  };
+
+  const denySelected = () => {
+    setAthletes((prev) => prev.filter(a => !selected.includes(a.id)));
+    setSelected([]);
+    alert("Denied");
+  };
+
+  return (
+    <div className={styles.container}>
+
+      {/* SIDEBAR */}
+      <aside className={styles.sidebar}>
+        <h2>ASEAN PARAGAMES 2025</h2>
+        <p>Tournament</p>
+        <p>Announcement</p>
+        <p>Location</p>
+        <p className={styles.active}>Request Ticket</p>
+      </aside>
+
+      {/* MAIN */}
+      <main className={styles.main}>
+
+        <div className={styles.header}>
+          <h1>REQUEST</h1>
+          <button onClick={() => setShowFilter(!showFilter)}>
+            FILTER
+          </button>
+        </div>
+
+        {showFilter && (
+          <div className={styles.filterPanel}>
+            <strong>Date</strong>
+            <label><input type="checkbox" /> Ascending</label>
+            <label><input type="checkbox" /> Descending</label>
+
+            <hr />
+
+            <strong>Disability</strong>
+            <label><input type="checkbox" /> Visual</label>
+            <label><input type="checkbox" /> Hearing</label>
+
+            <hr />
+
+            <strong>Gender</strong>
+            <label><input type="checkbox" /> Male</label>
+            <label><input type="checkbox" /> Female</label>
+          </div>
+        )}
+
+        {/* TABLE */}
+        <div className={styles.tableBox}>
+          <table>
+            <thead>
+              <tr>
+                <th></th>
+                <th>Date</th>
+                <th>Name</th>
+                <th>Sex</th>
+                <th>Weight</th>
+                <th>Height</th>
+                <th>Disability</th>
+              </tr>
+            </thead>
+
+            <tbody>
+              {athletes.map((a) => (
+                <tr key={a.id}>
+                  <td>
+                    <input
+                      type="checkbox"
+                      checked={selected.includes(a.id)}
+                      onChange={() => toggleSelect(a.id)}
+                    />
+                  </td>
+                  <td>{a.date}</td>
+                  <td>{a.name}</td>
+                  <td>{a.sex}</td>
+                  <td>{a.weight}</td>
+                  <td>{a.height}</td>
+                  <td>{a.disability}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
+        <div className={styles.actions}>
+          <button onClick={acceptSelected}>ACCEPT</button>
+          <button onClick={denySelected}>DENY</button>
+        </div>
+
+      </main>
+
+      {/* RIGHT PANEL */}
+      <aside className={styles.rightPanel}>
+        <p className={styles.sectionTitle}>UPCOMING TOURNAMENT</p>
+        <p>Tournament Name</p>
+        <p>Location</p>
+        <p className={styles.timer}>Timer</p>
+
+        <p className={styles.sectionTitle}>ANNOUNCEMENT</p>
+        <div className={styles.announcement}></div>
+        <div className={styles.announcement}></div>
+        <div className={styles.announcement}></div>
+      </aside>
+
+    </div>
+  );
+}
