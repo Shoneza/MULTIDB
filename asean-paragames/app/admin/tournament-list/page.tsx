@@ -2,59 +2,86 @@
 
 import { useState, useEffect } from 'react';
 
-interface Tournament {
+interface Competition {
   id: string;
   sportName: string;
   competitionName: string;
   gender: string;
-  disabilityType: string;
-  datetime: string;
+  schedule: string;
 }
-const initialTournaments: Tournament[] = [
+
+interface Sport {
+  sport_id: number;
+  sport_name: string;
+}
+
+const initialCompetitions: Competition[] = [
   {
     id: '1',
     sportName: 'Long Jump',
     competitionName: "Men's Long Jump T42",
     gender: 'Male',
-    disabilityType: 'Lower Limb Deficiency',
-    datetime: '2025-11-01T09:00',
+    schedule: '2025-11-01T09:00',
   },
   {
     id: '2',
     sportName: 'High Jump',
     competitionName: "Women's High Jump T44",
     gender: 'Female',
-    disabilityType: 'Lower Limb Deficiency',
-    datetime: '2025-11-02T10:30',
-  }
-];
+    schedule: '2025-11-02',}];
 export default function HomePage() {
-  const [tournaments, setTournaments] = useState<Tournament[]>([]);
+  const [Competitions, setCompetitions] = useState<Competition[]>([]);
   const [isLoaded, setIsLoaded] = useState(false);
 
-  useEffect(() => {
-    const savedTournaments = localStorage.getItem('tournaments');
-    if (savedTournaments) {
-      setTournaments(JSON.parse(savedTournaments));
-    } else {
-      setTournaments(initialTournaments);
-    }
-    setIsLoaded(true);
-  }, []);
+  // useEffect(() => {
+  //   const savedCompetitions = localStorage.getItem('Competitions');
+  //   if (savedCompetitions) {
+  //     setCompetitions(JSON.parse(savedCompetitions));
+  //   } else {
+  //     setCompetitions(initialCompetitions);
+  //   }
+  //   setIsLoaded(true);
+  // }, []);
 
-  useEffect(() => {
-    if (isLoaded) {
-      localStorage.setItem('tournaments', JSON.stringify(tournaments));
-    }
-  }, [tournaments, isLoaded]);
+  // useEffect(() => {
+  //   if (isLoaded) {
+  //     localStorage.setItem('Competitions', JSON.stringify(Competitions));
+  //   }
+  // }, [Competitions, isLoaded]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [formData, setFormData] = useState({
     sportName: '',
     competitionName: '',
     gender: '',
     disabilityType: '',
-    datetime: '',
+    schedule: '',
   });
+    const [sports, setSports] = useState<Sport[]>([]);
+  const fetchSports = async () => {
+    const res = await fetch('/api/sports');
+    const data = await res.json();
+    setSports(data);
+  }
+  const fetchCompetitions = async () => {
+    fetch('/api/competitions')
+      .then((res) => res.json())
+      .then((data) => {
+        const formattedCompetitions = data.map((comp:any)=> ({
+          id: comp.competition_id.toString(),
+          sportName: comp.sport_name,
+          competitionName: comp.competition_name,
+          gender: comp.gender,
+          schedule: new Date(comp.date_time).toISOString(),
+        }))
+        setCompetitions(formattedCompetitions);
+      })
+  }
+
+  // Fetch sports from the database when the component mounts
+  useEffect(() => {
+    fetchSports();
+    fetchCompetitions();
+  }, []);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -64,66 +91,72 @@ export default function HomePage() {
     }));
   };
 
-  const handleAddTournament = () => {
+  const handleAddCompetition =async () => {
     if (
       formData.sportName &&
       formData.competitionName &&
       formData.gender &&
       formData.disabilityType &&
-      formData.datetime
+      formData.schedule
     ) {
-      const newTournament: Tournament = {
-        id: (tournaments.length + 1).toString(),
-        ...formData,
-      };
-      setTournaments([...tournaments, newTournament]);
-      setFormData({
-        sportName: '',
-        competitionName: '',
-        gender: '',
-        disabilityType: '',
-        datetime: '',
+      const response = await fetch('/api/competitions',{
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData),
       });
-      setIsModalOpen(false);
+      if(response.ok){
+        const newCompetition: Competition = {
+          id: (Competitions.length + 1).toString(),
+          ...formData,
+        };
+        setCompetitions([...Competitions, newCompetition]);
+        setFormData({
+          sportName: '',
+          competitionName: '',
+          gender: '',
+          disabilityType: '',
+          schedule: '',
+        });
+        setIsModalOpen(false);
+      }
     }
   };
 
   return (
     <div className="flex h-full w-full bg-gray-900 text-white">
-    
-
       {/* Main Content */}
       <main className="flex-1 p-8 overflow-y-auto">
         <div>
-          <h1 className="text-3xl font-bold mb-8">UPCOMING TOURNAMENT</h1>
-
+          <h1 className="text-3xl font-bold mb-8">UPCOMING Competition</h1>
           <div className="space-y-4">
-            {tournaments.map((tournament) => (
+            {Competitions.map((Competition) => (
               <div
-                key={tournament.id}
+                key={Competition.id}
                 className="bg-gray-800 rounded-lg p-6 flex items-center gap-6 border border-gray-700 hover:border-gray-600 transition"
               >
                 <div className="flex-1 grid grid-cols-4 gap-4">
                   <div>
-                    <p className="text-gray-400 text-sm">{tournament.sportName}</p>
+                    <p className="text-gray-400 text-sm">{Competition.sportName}</p>
                     <p className="text-gray-400 text-sm mt-2">
-                      {tournament.disabilityType}
+                      {/* {Competition.disabilityType} */}
                     </p>
                   </div>
                   <div>
                     <p className="text-gray-400 text-sm">
-                      {tournament.competitionName}
+                      {Competition.competitionName}
                     </p>
                   </div>
                   <div>
-                    <p className="text-gray-400 text-sm">{tournament.gender}</p>
+                    <p className="text-gray-400 text-sm">{Competition.gender}</p>
                   </div>
                   <div className="text-right">
                     <p className="text-gray-400 text-sm">
-                      {new Date(tournament.datetime).toLocaleDateString()}
+                      {new Date(Competition.schedule).toLocaleDateString()}
                     </p>
                     <p className="text-gray-400 text-sm mt-1">
-                      {new Date(tournament.datetime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                      {new Date(Competition.schedule).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                     </p>
                   </div>
                 </div>
@@ -146,7 +179,7 @@ export default function HomePage() {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-gray-800 rounded-lg p-8 w-full max-w-md border border-gray-700">
             <div className="flex justify-between items-center mb-6">
-              <h2 className="text-2xl font-bold">[Admin] Added Tournament Popup CREATE</h2>
+              <h2 className="text-2xl font-bold">[Admin] Added Competition Popup CREATE</h2>
               <button
                 onClick={() => setIsModalOpen(false)}
                 className="text-gray-400 hover:text-white text-2xl"
@@ -164,18 +197,17 @@ export default function HomePage() {
                   onChange={(e) => setFormData((prev) => ({ ...prev, sportName: e.target.value }))}
                   className="w-full bg-gray-700 border border-gray-600 rounded px-3 py-2 text-white focus:outline-none focus:border-cyan-400"
                 >
-                  <option value="">Select Sport</option>
-                  <option value="longJump">Long Jump</option>
-                  <option value="highJump">High Jump</option>
-                  <option value="tripleJump">Triple Jump</option>
-                  <option value="shotPut">Shot Put</option>
-                  <option value="discusThrow">Discus Throw</option>
-                  <option value="javelinThrow">Javelin Throw</option>
+                  <option value="">Select a sport</option>
+                  {sports.map((sport) => (
+                    <option key={sport.sport_id} value={sport.sport_id}>
+                      {sport.sport_name}
+                    </option>
+                  ))}
                 </select>
                 </div>
 
               <div>
-                <label className="block text-sm text-gray-400 mb-1">Gender Type</label>
+                <label className="block text-sm text-gray-400 mb-1">Gender</label>
                 <select
                   name="gender"
                   value={formData.gender}
@@ -183,8 +215,8 @@ export default function HomePage() {
                   className="w-full bg-gray-700 border border-gray-600 rounded px-3 py-2 text-white focus:outline-none focus:border-cyan-400"
                 >
                   <option value="">Select Gender</option>
-                  <option value="Male">Male</option>
-                  <option value="Female">Female</option>
+                  <option value="M">Male</option>
+                  <option value="F">Female</option>
                 
                 </select>
               </div>
@@ -228,7 +260,7 @@ export default function HomePage() {
                 <input
                   type="datetime-local"
                   name="datetime"
-                  value={formData.datetime}
+                  value={formData.schedule}
                   onChange={handleInputChange}
                   className="w-full bg-gray-700 border border-gray-600 rounded px-3 py-2 text-white focus:outline-none focus:border-cyan-400"
                 />
@@ -242,7 +274,7 @@ export default function HomePage() {
                   Cancel
                 </button>
                 <button
-                  onClick={handleAddTournament}
+                  onClick={handleAddCompetition}
                   className="px-4 py-2 bg-cyan-400 text-black font-semibold rounded hover:bg-cyan-300 transition"
                 >
                   Save
