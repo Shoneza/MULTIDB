@@ -109,13 +109,15 @@ export default function HomePage() {
         : [...prev, id]
     );
   };
-
+  const handleDeleteCompetition = async (id: string) => {
+    const response = await fetch(`/api/competitions?id=${id}`, {
+      method: 'DELETE',
+    });
+    if (response.ok) {
+      fetchCompetitions();
+    }}
   const handleDeleteSelected = async () => {
-    await Promise.all(
-      selectedIds.map((id) =>
-        fetch(`/api/competitions/${id}`, { method: "DELETE" })
-      )
-    );
+    await Promise.all(selectedIds.map(id => handleDeleteCompetition(id)));
 
     fetchCompetitions();
     setSelectedIds([]);
@@ -127,9 +129,7 @@ export default function HomePage() {
     setSelectedIds([]);
   };
 
-  /* =========================
-     UI
-  ========================= */
+
 
   return (
     <div className="flex h-full w-full bg-gray-900 text-white">
@@ -290,7 +290,6 @@ export default function HomePage() {
                 <option value="M">Male</option>
                 <option value="F">Female</option>
               </select>
-
               <input
                 name="competitionName"
                 value={formData.competitionName}
@@ -298,7 +297,6 @@ export default function HomePage() {
                 placeholder="Competition name"
                 className="w-full bg-gray-700 rounded px-3 py-2"
               />
-
               <select
                 value={formData.disabilityType}
                 onChange={(e) =>
@@ -313,7 +311,6 @@ export default function HomePage() {
                 <option>Lower Limb Deficiency</option>
                 <option>Upper Limb Deficiency</option>
               </select>
-
               <input
                 type="datetime-local"
                 name="schedule"
@@ -331,7 +328,6 @@ export default function HomePage() {
                   Save
                 </button>
               </div>
-
             </div>
           </div>
         </div>
