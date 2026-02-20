@@ -117,9 +117,13 @@ export default function TournamentDetailPage() {
             <p className="text-gray-400 mb-2">
               DISABILITY TYPE: [DISABILITY]
             </p>
-            <p className="text-gray-400">
+            <p className="text-gray-400 mb-2">
+              GENDER: [GENDER]
+            </p>
+            <p className="text-gray-400 mb-2">
               SCHEDULE: [DATE & TIME]
             </p>
+            
           </div>
         </section>
 
