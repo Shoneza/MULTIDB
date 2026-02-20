@@ -1,16 +1,7 @@
-import { NextRequest, NextResponse } from "next/server";
-import { Client } from "pg";
-
-export async function POST(req: NextRequest) {
-  const data = await req.json();
-  const client = new Client({
-    user: "postgres",
-    password: "1234",
-    host: "localhost",
-    port: 5432,
-    database: "postgres",
-  });
-  await client.connect();
+import { NextResponse,NextRequest } from 'next/server';
+import pool from '../../../db';
+export async function POST(request: NextRequest) {
+  const body = await request.json();
 
   const query = `
     INSERT INTO athletes (
@@ -20,29 +11,44 @@ export async function POST(req: NextRequest) {
     )
   `;
   const values = [
-    data.username,
-    data.password,
-    data.email,
-    data.national_id,
-    data.name_en,
-    data.surname_en,
-    data.gender,
-    data.religion,
-    data.nationality,
-    data.bloodType,
-    data.team_name,
-    data.is_wheelchair_dependant,
-    data.weight,
-    data.height,
+    body.username,
+    body.password,
+    body.email,
+    body.national_id,
+    body.name_en,
+    body.surname_en,
+    body.gender,
+    body.religion,
+    body.nationality,
+    body.bloodType,
+    body.team_name,
+    body.is_wheelchair_dependant,
+    body.weight,
+    body.height,
+    body.disability_type
     
   ];
 
   try {
-    await client.query(query, values);
-    await client.end();
+    // await client.query(query, values);
+    // await client.end();
+    const result = await pool.query(query, values);
     return NextResponse.json({ success: true });
   } catch (err) {
-    await client.end();
+    return NextResponse.json({ error: err instanceof Error ? err.message : "Unknown error" }, { status: 500 });
+  }
+}
+export async function GET(request:NextRequest) {
+  try {
+    const {searchParams} = new URL(request.url);
+    const disabilityType = searchParams.get('disabilityType');
+    if (disabilityType) {
+      const result = await pool.query('SELECT * FROM athletes WHERE disability_type = $1', [disabilityType]);
+      return NextResponse.json(result.rows);
+    }
+    const result = await pool.query('SELECT * FROM athletes');
+    return NextResponse.json(result.rows);
+  } catch (err) {
     return NextResponse.json({ error: err instanceof Error ? err.message : "Unknown error" }, { status: 500 });
   }
 }
