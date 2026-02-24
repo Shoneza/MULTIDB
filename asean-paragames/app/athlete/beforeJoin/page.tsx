@@ -1,6 +1,12 @@
 "use client";
 
+interface Sport {
+  sport_id: number;
+  sport_name: string;
+}
+
 import { useEffect, useRef, useState } from "react";
+
 
 
 type Section = "tournament" | "announcement" | "location" | "mycompetition";
@@ -11,23 +17,35 @@ export default function AthleteDashboard() {
   const [submitted, setSubmitted] = useState(false);
   const [selectedSports, setSelectedSports] = useState<string[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [sports, setSports] = useState<Sport[]>([]);
 
   // ✅ ADD: Replace with real logged-in athlete id
   const currentAthleteId = 1;
 
   // ✅ ADD: Sport name → sport_id mapping
   const sportMap: Record<string, number> = {
-    Swimming: 1,
-    Cycling: 2,
-    Badminton: 3,
-    Tennis: 4,
-    "Track Running": 5,
+    "Javelin Throw": 1,
+    "High Jump": 2,
+    "Long Jump": 3,
+    "Shot Put": 4,
+    "Discus Throw": 5,
+    "Pole Vault": 6,
+    "Triple Jump": 7,
   };
 
   const tournamentRef = useRef<HTMLElement | null>(null);
   const announcementRef = useRef<HTMLElement | null>(null);
   const locationRef = useRef<HTMLElement | null>(null);
   const myCompetitionRef = useRef<HTMLElement | null>(null);
+
+  // ===============================
+// Fetch Sports Function
+// ===============================
+  const fetchSports = async () => {
+    const res = await fetch("/api/sports");
+    const data = await res.json();
+    setSports(data);
+  };
 
   // ===============================
   // Scroll Spy (UNCHANGED)
@@ -53,6 +71,13 @@ export default function AthleteDashboard() {
 
     return () => observer.disconnect();
   }, [joinMode, submitted, selectedSports]);
+
+  // ===============================
+// Fetch Sports Data
+// ===============================
+  useEffect(() => {
+    fetchSports();
+  }, []);
 
   // ===============================
   // Checkbox Logic (UNCHANGED)
@@ -386,22 +411,20 @@ export default function AthleteDashboard() {
               JOIN COMPETITION
             </h2>
 
-            {["Swimming", "Cycling", "Badminton", "Tennis", "Track Running"].map(
-              (sport) => (
-                <label
-                  key={sport}
-                  className="flex items-center gap-4 mb-6 text-lg"
-                >
-                  <input
-                    type="checkbox"
-                    checked={selectedSports.includes(sport)}
-                    onChange={() => toggleSport(sport)}
-                    className="w-5 h-5"
-                  />
-                  {sport}
-                </label>
-              )
-            )}
+            {sports.map((sport) => (
+              <label
+                key={sport.sport_id}
+                className="flex items-center gap-4 mb-6 text-lg"
+              >
+                <input
+                  type="checkbox"
+                  checked={selectedSports.includes(sport.sport_name)}
+                  onChange={() => toggleSport(sport.sport_name)}
+                  className="w-5 h-5"
+                />
+                {sport.sport_name}
+              </label>
+            ))}
 
             <button
               onClick={handleSubmit}
