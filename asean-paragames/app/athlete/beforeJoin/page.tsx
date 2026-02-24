@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 
+
 type Section = "tournament" | "announcement" | "location" | "mycompetition";
 
 export default function AthleteDashboard() {
@@ -62,7 +63,7 @@ export default function AthleteDashboard() {
         ? prev.filter((s) => s !== sport)
         : [...prev, sport]
     );
-  };
+  };  
 
   const [toast, setToast] = useState<{
     message: string;
@@ -70,8 +71,8 @@ export default function AthleteDashboard() {
   } | null>(null);
 
   // ===============================
-  // ✅ UPDATED SUBMIT (REAL API CALL)
-  // ===============================
+// ✅ UPDATED SUBMIT (REAL API CALL)
+// ===============================
   const handleSubmit = async () => {
     if (selectedSports.length === 0) {
       setToast({
@@ -84,18 +85,26 @@ export default function AthleteDashboard() {
     try {
       setIsSubmitting(true);
 
-      await Promise.all(
-        selectedSports.map((sportName) =>
-          fetch("/api/registration", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              athlete_id: currentAthleteId,
-              registered_sport_id: sportMap[sportName],
-            }),
-          })
-        )
-      );
+      // Get sport_ids from selected sports
+      const selectedSportIds = selectedSports.map(sport => sportMap[sport]).filter(id => id !== undefined);
+
+      // Loop through each selected sport and register one by one
+      for (const sportId of selectedSportIds) {
+        const response = await fetch("/api/registration", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            athlete_id: currentAthleteId, // Using 1 as specified
+            registered_sport_id: sportId,
+          }),
+        });
+
+        if (!response.ok) {
+          throw new Error(`Failed to register for sport ID ${sportId}`);
+        }
+      }
 
       setSubmitted(true);
 
@@ -106,7 +115,7 @@ export default function AthleteDashboard() {
         type: "success",
       });
 
-    } catch (err) {
+    } catch {
       setToast({
         message: "Something went wrong. Please try again.",
         type: "error",
