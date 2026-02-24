@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 
-type Section = "tournament" | "announcement" | "location";
+type Section = "tournament" | "announcement" | "location" | "mycompetition";
 
 export default function AthleteDashboard() {
   const [activeSection, setActiveSection] = useState<Section>("tournament");
@@ -13,6 +13,7 @@ export default function AthleteDashboard() {
   const tournamentRef = useRef<HTMLElement | null>(null);
   const announcementRef = useRef<HTMLElement | null>(null);
   const locationRef = useRef<HTMLElement | null>(null);
+  const myCompetitionRef = useRef<HTMLElement | null>(null);
 
   // ===============================
   // Scroll Spy
@@ -89,9 +90,10 @@ const mockLocation = {
     if (tournamentRef.current) observer.observe(tournamentRef.current);
     if (announcementRef.current) observer.observe(announcementRef.current);
     if (locationRef.current) observer.observe(locationRef.current);
+    if (myCompetitionRef.current) observer.observe(myCompetitionRef.current);
 
     return () => observer.disconnect();
-  }, [joinMode]);
+  }, [joinMode, submitted, selectedSports]);
 
   // ===============================
   // Checkbox Logic
@@ -161,6 +163,22 @@ const handleSubmit = async () => {
                 TOURNAMENT
               </button>
 
+              {/* My Competition nav button directly below Tournament */}
+              {submitted && selectedSports.length > 0 && (
+                  <button
+                    onClick={() => {
+                      if (myCompetitionRef.current) myCompetitionRef.current.scrollIntoView({ behavior: "smooth" });
+                    }}
+                    className={`block w-full text-left px-3 py-2 rounded ${
+                      activeSection === "mycompetition"
+                        ? "bg-cyan-500 text-black"
+                        : "text-gray-400"
+                    }`}
+                  >
+                    My Competition
+                  </button>
+              )}
+
               <button
                 onClick={() => announcementRef.current?.scrollIntoView({ behavior: "smooth" })}
                 className={`block w-full text-left px-3 py-2 rounded ${
@@ -210,88 +228,107 @@ const handleSubmit = async () => {
 
         {!joinMode ? (
         <>
-            {/* ================= TOURNAMENT ================= */}
-            <section id="tournament" ref={tournamentRef}>
-            <div className="bg-gray-900 p-10 rounded-2xl">
-                <h2 className="text-3xl mb-8 text-white">
-                UPCOMING TOURNAMENT
-                </h2>
+          {/* ================= TOURNAMENT ================= */}
+          <section id="tournament" ref={tournamentRef}>
+          <div className="bg-gray-900 p-10 rounded-2xl">
+            <h2 className="text-3xl mb-8 text-white">
+            UPCOMING TOURNAMENT
+            </h2>
 
-                <div className="space-y-6">
-                {mockTournaments.map((t) => (
-                    <div
-                    key={t.id}
-                    className="border border-gray-700 rounded-lg overflow-hidden"
-                    >
-                    <div className="flex justify-between bg-gray-800 px-6 py-4">
-                        <span className="text-gray-300 font-semibold">
-                        {t.sport}
-                        </span>
-                        <span className="text-gray-400">
-                        {t.competition}
-                        </span>
-                    </div>
+            <div className="space-y-6">
+            {mockTournaments.map((t) => (
+              <div
+              key={t.id}
+              className="border border-gray-700 rounded-lg overflow-hidden"
+              >
+              <div className="flex justify-between bg-gray-800 px-6 py-4">
+                <span className="text-gray-300 font-semibold">
+                {t.sport}
+                </span>
+                <span className="text-gray-400">
+                {t.competition}
+                </span>
+              </div>
 
-                    <div className="flex justify-between px-6 py-4 text-sm text-gray-400">
-                        <span>{t.disability}</span>
-                        <span>{t.date}</span>
-                    </div>
-                    </div>
-                ))}
-                </div>
+              <div className="flex justify-between px-6 py-4 text-sm text-gray-400">
+                <span>{t.disability}</span>
+                <span>{t.date}</span>
+              </div>
+              </div>
+            ))}
             </div>
-            </section>
+          </div>
+          </section>
 
-            {/* ================= ANNOUNCEMENT ================= */}
-            <section id="announcement" ref={announcementRef}>
-            <div className="bg-gray-900 p-10 rounded-2xl">
-                <h2 className="text-3xl mb-8">ANNOUNCEMENT</h2>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                {mockAnnouncements.map((a) => (
-                    <div
-                    key={a.id}
-                    className="bg-gray-800 rounded-lg p-6 hover:bg-gray-700 transition"
-                    >
-                    <p className="text-sm text-cyan-400 mb-2">
-                        {a.date}
-                    </p>
-
-                    <h3 className="text-xl font-semibold mb-3">
-                        {a.title}
-                    </h3>
-
-                    <p className="text-gray-400 text-sm">
-                        {a.description}
-                    </p>
-                    </div>
-                ))}
+            {/* ===== MY COMPETITION SECTION ===== */}
+            {submitted && selectedSports.length > 0 && (
+              <section
+                id="mycompetition"
+                ref={myCompetitionRef}
+                style={{ scrollMarginTop: 180 }}
+                className="mt-24"
+              >
+                <div id="mycompetition-content" className="bg-gray-800 rounded-xl p-6 mb-8">
+                  <h3 className="text-xl font-bold text-cyan-300 mb-4">My Competition</h3>
+                  <ul className="list-disc pl-6 text-white">
+                    {selectedSports.map((sport) => (
+                      <li key={sport}>{sport}</li>
+                    ))}
+                  </ul>
                 </div>
+              </section>
+            )}
+
+          {/* ================= ANNOUNCEMENT ================= */}
+          <section id="announcement" ref={announcementRef}>
+          <div className="bg-gray-900 p-10 rounded-2xl">
+            <h2 className="text-3xl mb-8">ANNOUNCEMENT</h2>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            {mockAnnouncements.map((a) => (
+              <div
+              key={a.id}
+              className="bg-gray-800 rounded-lg p-6 hover:bg-gray-700 transition"
+              >
+              <p className="text-sm text-cyan-400 mb-2">
+                {a.date}
+              </p>
+
+              <h3 className="text-xl font-semibold mb-3">
+                {a.title}
+              </h3>
+
+              <p className="text-gray-400 text-sm">
+                {a.description}
+              </p>
+              </div>
+            ))}
             </div>
-            </section>
+          </div>
+          </section>
 
-            {/* ================= LOCATION ================= */}
-            <section id="location" ref={locationRef}>
-            <div className="bg-gray-900 p-10 rounded-2xl">
-                <h2 className="text-3xl mb-6">LOCATION</h2>
+          {/* ================= LOCATION ================= */}
+          <section id="location" ref={locationRef}>
+          <div className="bg-gray-900 p-10 rounded-2xl">
+            <h2 className="text-3xl mb-6">LOCATION</h2>
 
-                <p className="text-lg text-white mb-2">
-                {mockLocation.venue}
-                </p>
+            <p className="text-lg text-white mb-2">
+            {mockLocation.venue}
+            </p>
 
-                <p className="text-gray-400 mb-4">
-                {mockLocation.address}
-                </p>
+            <p className="text-gray-400 mb-4">
+            {mockLocation.address}
+            </p>
 
-                <p className="text-gray-400 mb-8">
-                {mockLocation.description}
-                </p>
+            <p className="text-gray-400 mb-8">
+            {mockLocation.description}
+            </p>
 
-                <div className="h-64 bg-gray-700 rounded-lg flex items-center justify-center text-gray-400">
-                MAP PLACEHOLDER
-                </div>
+            <div className="h-64 bg-gray-700 rounded-lg flex items-center justify-center text-gray-400">
+            MAP PLACEHOLDER
             </div>
-            </section>
+          </div>
+          </section>
         </>
         ) : (
           <div className="bg-gray-900 p-10 rounded-2xl max-w-3xl">
