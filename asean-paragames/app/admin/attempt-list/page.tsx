@@ -33,6 +33,31 @@ export default function AttemptListPage() {
     }
   };
 
+  // Score edit state
+  const [editing, setEditing] = useState<{ athleteId: number; attemptIdx: number } | null>(null);
+  const [editValue, setEditValue] = useState("");
+
+  function handleEditScore(athleteId: number, attemptIdx: number, currentScore: number | undefined) {
+    setEditing({ athleteId, attemptIdx });
+    setEditValue(currentScore !== undefined ? String(currentScore) : "");
+  }
+
+  function handleSaveScore() {
+    if (!editing) return;
+    setAthletes((athletes) =>
+      athletes.map((a) => {
+        if (a.id === editing.athleteId) {
+          const newAttempts = [...a.attempts];
+          newAttempts[editing.attemptIdx] = parseFloat(editValue);
+          return { ...a, attempts: newAttempts };
+        }
+        return a;
+      })
+    );
+    setEditing(null);
+    setEditValue("");
+  }
+
   return (
     <div className="min-h-screen bg-[#0f1720] py-10 px-4">
       <div className="max-w-3xl mx-auto">
@@ -58,7 +83,46 @@ export default function AttemptListPage() {
                   <td className="py-3 px-4 border-b border-[#22304a] text-cyan-100">{athlete.nationality}</td>
                   {[...Array(maxAttempts)].map((_, i) => (
                     <td key={i} className="py-3 px-4 border-b border-[#22304a] text-center">
-                      {athlete.attempts[i] ?? <span className="text-gray-500">-</span>}
+                      {editing && editing.athleteId === athlete.id && editing.attemptIdx === i ? (
+                        <div className="flex flex-col items-center gap-2">
+                          <input
+                            type="number"
+                            value={editValue}
+                            onChange={e => setEditValue(e.target.value)}
+                            className="bg-gray-200 text-black rounded px-2 py-1 w-16 text-sm mb-1"
+                          />
+                          <div className="flex gap-2">
+                            <button
+                              onClick={handleSaveScore}
+                              className="bg-cyan-400 text-black px-2 py-1 rounded text-xs font-bold"
+                            >Save</button>
+                            <button
+                              onClick={() => setEditing(null)}
+                              className="bg-gray-400 text-black px-2 py-1 rounded text-xs font-bold"
+                            >Cancel</button>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="flex flex-col items-center">
+                          {athlete.attempts[i] !== undefined ? (
+                            <>
+                              <span>{athlete.attempts[i]}</span>
+                              <button
+                                onClick={() => handleEditScore(athlete.id, i, athlete.attempts[i])}
+                                className="mt-1 bg-yellow-400 text-black px-2 py-1 rounded text-xs font-bold"
+                              >Edit</button>
+                            </>
+                          ) : (
+                            <>
+                              <span className="text-gray-500">-</span>
+                              <button
+                                onClick={() => handleEditScore(athlete.id, i, undefined)}
+                                className="mt-1 bg-yellow-400 text-black px-2 py-1 rounded text-xs font-bold"
+                              >Edit</button>
+                            </>
+                          )}
+                        </div>
+                      )}
                     </td>
                   ))}
                   <td className="py-3 px-4 border-b border-[#22304a] text-center">

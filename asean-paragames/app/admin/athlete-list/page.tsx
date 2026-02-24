@@ -1,4 +1,4 @@
-"use client";
+  "use client";
 
 import { useState } from "react";
 
@@ -19,8 +19,17 @@ const DISABILITY_OPTIONS = [
 ];
 
 export default function AthleteListPage() {
+      function handleDeleteSelected() {
+        setAthletes((cur) => cur.filter((a) => !selectedIds.includes(a.id)));
+        setAvailable((cur) => cur.filter((a) => !selectedIds.includes(a.id)));
+        setSelectedIds([]);
+        setDeleteMode(false);
+      }
+    function cancelDeleteMode() {
+      setDeleteMode(false);
+      setSelectedIds([]);
+    }
   const [athletes, setAthletes] = useState<Athlete[]>([]);
-
   // pool of athletes shown inside the selection modal
   const [available, setAvailable] = useState<Athlete[]>([
     { id: 1, firstName: "Somchai", surname: "Somsri", nationality: "Thailand", disability: "T" },
@@ -35,26 +44,21 @@ export default function AthleteListPage() {
     { id: 10, firstName: "Test8", surname: "Test8", nationality: "Laos", disability: "T" },
     { id: 11, firstName: "Test9", surname: "Test9", nationality: "Laos", disability: "T" },
   ]);
-
   const [showSelectionModal, setShowSelectionModal] = useState(false);
-
   const [selected, setSelected] = useState<Record<number, boolean>>({});
-
-  
-
+  // DELETE MODE
+  const [deleteMode, setDeleteMode] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<number[]>([]);
   function toggleSelect(id: number) {
     setSelected((s) => ({ ...s, [id]: !s[id] }));
   }
-
   const selectedCount = Object.values(selected).filter(Boolean).length;
-
   function addSelectedToList() {
     const ids = Object.entries(selected).filter(([, v]) => v).map(([k]) => Number(k));
     if (ids.length === 0) {
       setShowSelectionModal(false);
       return;
     }
-
     const toAdd = available.filter((a) => ids.includes(a.id) && !athletes.some((x) => x.id === a.id));
     if (toAdd.length) {
       setAthletes((cur) => [...toAdd, ...cur]);
@@ -69,29 +73,80 @@ export default function AthleteListPage() {
       <div className="max-w-6xl mx-auto">
         <div className="flex items-center justify-between mb-6">
           <h1 className="text-2xl font-semibold">Athlete List</h1>
-          <button onClick={() => setShowSelectionModal(true)} className="bg-cyan-400 text-black px-4 py-2 rounded-full">Add Athlete</button>
         </div>
+      {/* FLOATING ADD ATHLETE BUTTON */}
+      <button
+        onClick={() => setShowSelectionModal(true)}
+        className="fixed bottom-8 right-8 w-12 h-12 bg-cyan-400 text-black rounded-full text-2xl font-bold shadow-lg z-50"
+      >
+        +
+      </button>
 
         <div className="bg-[#0f1720] rounded-xl p-4">
           <table className="w-full text-left border-collapse table-fixed">
             <thead>
               <tr className="text-gray-300 text-sm">
+                {deleteMode && <th className="w-10"> </th>}
                 <th className="w-16 py-2">No.</th>
                 <th className="py-2">Name</th>
                 <th className="py-2">Nationality</th>
+                {deleteMode && <th className="py-2">Delete</th>}
               </tr>
             </thead>
             <tbody>
-              {athletes.map((a, idx) => (
-                <tr key={a.id} className="border-t border-gray-800">
-                  <td className="py-3">{idx + 1}</td>
-                  <td className="py-3">{a.firstName} {a.surname}</td>
-                  <td className="py-3">{a.nationality}</td>
-                </tr>
-              ))}
+              {athletes.map((a, idx) => {
+                const selected = selectedIds.includes(a.id);
+                return (
+                  <tr key={a.id} className="border-t border-gray-800">
+                    {deleteMode && (
+                      <td className="p-2">
+                        <input
+                          type="checkbox"
+                          checked={selected}
+                          onChange={() => {
+                            setSelectedIds((ids) => 
+                              ids.includes(a.id) ? ids.filter(id => id !== a.id) : [...ids, a.id]
+                            );
+                          }}
+                        />
+                      </td>
+                    )}
+                    <td className="py-3">{idx + 1}</td>
+                    <td className="py-3">{a.firstName} {a.surname}</td>
+                    <td className="py-3">{a.nationality}</td>
+                    {/* No individual Delete button in delete mode */}
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>
+            {/* DELETE MODE BUTTONS */}
+            {deleteMode && (
+              <div className="flex gap-3 mt-4">
+                <button
+                  onClick={cancelDeleteMode}
+                  className="px-4 py-2 border border-cyan-400 text-cyan-400 rounded"
+                >
+                  CANCEL
+                </button>
+                <button
+                  onClick={handleDeleteSelected}
+                  className="px-4 py-2 bg-cyan-400 text-black font-semibold rounded"
+                >
+                  DELETE SELECTED
+                </button>
+              </div>
+            )}
+            {/* DELETE MODE ENTER BUTTON */}
+            {!deleteMode && (
+              <button
+                onClick={() => setDeleteMode(true)}
+                className="fixed bottom-24 right-8 w-12 h-12 bg-cyan-400 text-black rounded-full text-2xl font-bold shadow-lg"
+              >
+                -
+              </button>
+            )}
       </div>
 
       {showSelectionModal && (
