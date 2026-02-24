@@ -17,6 +17,61 @@ export default function AthleteDashboard() {
   // ===============================
   // Scroll Spy
   // ===============================
+const mockTournaments = [
+  {
+    id: 1,
+    sport: "Swimming",
+    competition: "100m Freestyle S8",
+    disability: "Physical Impairment",
+    date: "10 May 2025 · 09:00 AM",
+  },
+  {
+    id: 2,
+    sport: "Cycling",
+    competition: "Road Race C4",
+    disability: "Lower Limb Disability",
+    date: "12 May 2025 · 01:30 PM",
+  },
+  {
+    id: 3,
+    sport: "Badminton",
+    competition: "Men Singles SL3",
+    disability: "Standing Lower",
+    date: "15 May 2025 · 11:00 AM",
+  },
+];
+
+const mockAnnouncements = [
+  {
+    id: 1,
+    title: "Competition Schedule Updated",
+    date: "5 April 2025",
+    description:
+      "Please check the updated match schedules due to venue adjustment.",
+  },
+  {
+    id: 2,
+    title: "Athlete Registration Deadline Extended",
+    date: "8 April 2025",
+    description:
+      "Registration deadline has been extended until 20 April 2025.",
+  },
+  {
+    id: 3,
+    title: "Opening Ceremony Details",
+    date: "12 April 2025",
+    description:
+      "Opening ceremony will take place at National Stadium at 6PM.",
+  },
+];
+
+const mockLocation = {
+  venue: "National Stadium Bangkok",
+  address: "123 Rama 1 Road, Pathumwan, Bangkok 10330",
+  description:
+    "Main venue for track & field, swimming, and opening ceremony events.",
+};
+
   useEffect(() => {
     if (joinMode) return;
 
@@ -154,28 +209,90 @@ const handleSubmit = async () => {
       <main className="flex-1 px-16 py-12 space-y-32">
 
         {!joinMode ? (
-          <>
+        <>
+            {/* ================= TOURNAMENT ================= */}
             <section id="tournament" ref={tournamentRef}>
-              <div className="bg-gray-900 p-10 rounded-2xl">
-                <h2 className="text-2xl mb-6">UPCOMING TOURNAMENT</h2>
-                <p className="text-gray-400">Tournament content here...</p>
-              </div>
+            <div className="bg-gray-900 p-10 rounded-2xl">
+                <h2 className="text-3xl mb-8 text-white">
+                UPCOMING TOURNAMENT
+                </h2>
+
+                <div className="space-y-6">
+                {mockTournaments.map((t) => (
+                    <div
+                    key={t.id}
+                    className="border border-gray-700 rounded-lg overflow-hidden"
+                    >
+                    <div className="flex justify-between bg-gray-800 px-6 py-4">
+                        <span className="text-gray-300 font-semibold">
+                        {t.sport}
+                        </span>
+                        <span className="text-gray-400">
+                        {t.competition}
+                        </span>
+                    </div>
+
+                    <div className="flex justify-between px-6 py-4 text-sm text-gray-400">
+                        <span>{t.disability}</span>
+                        <span>{t.date}</span>
+                    </div>
+                    </div>
+                ))}
+                </div>
+            </div>
             </section>
 
+            {/* ================= ANNOUNCEMENT ================= */}
             <section id="announcement" ref={announcementRef}>
-              <div className="bg-gray-900 p-10 rounded-2xl">
-                <h2 className="text-2xl mb-6">ANNOUNCEMENT</h2>
-                <p className="text-gray-400">Announcement content here...</p>
-              </div>
+            <div className="bg-gray-900 p-10 rounded-2xl">
+                <h2 className="text-3xl mb-8">ANNOUNCEMENT</h2>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                {mockAnnouncements.map((a) => (
+                    <div
+                    key={a.id}
+                    className="bg-gray-800 rounded-lg p-6 hover:bg-gray-700 transition"
+                    >
+                    <p className="text-sm text-cyan-400 mb-2">
+                        {a.date}
+                    </p>
+
+                    <h3 className="text-xl font-semibold mb-3">
+                        {a.title}
+                    </h3>
+
+                    <p className="text-gray-400 text-sm">
+                        {a.description}
+                    </p>
+                    </div>
+                ))}
+                </div>
+            </div>
             </section>
 
+            {/* ================= LOCATION ================= */}
             <section id="location" ref={locationRef}>
-              <div className="bg-gray-900 p-10 rounded-2xl">
-                <h2 className="text-2xl mb-6">LOCATION</h2>
-                <div className="h-64 bg-gray-700 rounded-lg" />
-              </div>
+            <div className="bg-gray-900 p-10 rounded-2xl">
+                <h2 className="text-3xl mb-6">LOCATION</h2>
+
+                <p className="text-lg text-white mb-2">
+                {mockLocation.venue}
+                </p>
+
+                <p className="text-gray-400 mb-4">
+                {mockLocation.address}
+                </p>
+
+                <p className="text-gray-400 mb-8">
+                {mockLocation.description}
+                </p>
+
+                <div className="h-64 bg-gray-700 rounded-lg flex items-center justify-center text-gray-400">
+                MAP PLACEHOLDER
+                </div>
+            </div>
             </section>
-          </>
+        </>
         ) : (
           <div className="bg-gray-900 p-10 rounded-2xl max-w-3xl">
             <h2 className="text-3xl text-cyan-400 mb-10">
