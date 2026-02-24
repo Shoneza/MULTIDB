@@ -43,13 +43,6 @@ export default function AthleteListPage() {
   
 
   function toggleSelect(id: number) {
-    const currently = !!selected[id];
-    const count = Object.values(selected).filter(Boolean).length;
-    if (!currently && count >= 8) {
-      // prevent selecting more than 8
-      alert("เลือกได้สูงสุด 8 รายการ");
-      return;
-    }
     setSelected((s) => ({ ...s, [id]: !s[id] }));
   }
 
@@ -106,7 +99,7 @@ export default function AthleteListPage() {
           <div className="relative bg-[#4a5960] rounded-2xl p-4 w-full max-w-4xl border-4 border-[#3b4a51]">
             <button onClick={() => setShowSelectionModal(false)} className="absolute top-3 right-3 text-white">X</button>
             <div className="flex items-center justify-between px-3 pb-3">
-              <div className={`text-sm uppercase ${selectedCount >= 8 ? 'text-red-400' : 'text-cyan-200'}`}>{selectedCount} LISTS SELECTED</div>
+              <div className="text-sm uppercase text-cyan-200">{selectedCount} LISTS SELECTED</div>
               <button onClick={addSelectedToList} className="bg-cyan-400 text-black px-3 py-1 rounded-full text-sm">Add</button>
             </div>
 
@@ -129,7 +122,6 @@ export default function AthleteListPage() {
                             type="checkbox"
                             checked={!!selected[a.id]}
                             onChange={() => toggleSelect(a.id)}
-                            disabled={selectedCount >= 8 && !selected[a.id]}
                           />
                         </td>
                         <td className="p-2">{idx + 1}</td>
