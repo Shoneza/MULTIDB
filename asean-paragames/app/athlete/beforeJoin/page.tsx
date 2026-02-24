@@ -86,7 +86,7 @@ export default function AthleteDashboard() {
 
       await Promise.all(
         selectedSports.map((sportName) =>
-          fetch("/api/registrations", {
+          fetch("/api/registration", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
