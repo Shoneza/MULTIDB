@@ -9,69 +9,27 @@ export default function AthleteDashboard() {
   const [joinMode, setJoinMode] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [selectedSports, setSelectedSports] = useState<string[]>([]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // ✅ ADD: Replace with real logged-in athlete id
+  const currentAthleteId = 1;
+
+  // ✅ ADD: Sport name → sport_id mapping
+  const sportMap: Record<string, number> = {
+    Swimming: 1,
+    Cycling: 2,
+    Badminton: 3,
+    Tennis: 4,
+    "Track Running": 5,
+  };
 
   const tournamentRef = useRef<HTMLElement | null>(null);
   const announcementRef = useRef<HTMLElement | null>(null);
   const locationRef = useRef<HTMLElement | null>(null);
 
   // ===============================
-  // Scroll Spy
+  // Scroll Spy (UNCHANGED)
   // ===============================
-const mockTournaments = [
-  {
-    id: 1,
-    sport: "Swimming",
-    competition: "100m Freestyle S8",
-    disability: "Physical Impairment",
-    date: "10 May 2025 · 09:00 AM",
-  },
-  {
-    id: 2,
-    sport: "Cycling",
-    competition: "Road Race C4",
-    disability: "Lower Limb Disability",
-    date: "12 May 2025 · 01:30 PM",
-  },
-  {
-    id: 3,
-    sport: "Badminton",
-    competition: "Men Singles SL3",
-    disability: "Standing Lower",
-    date: "15 May 2025 · 11:00 AM",
-  },
-];
-
-const mockAnnouncements = [
-  {
-    id: 1,
-    title: "Competition Schedule Updated",
-    date: "5 April 2025",
-    description:
-      "Please check the updated match schedules due to venue adjustment.",
-  },
-  {
-    id: 2,
-    title: "Athlete Registration Deadline Extended",
-    date: "8 April 2025",
-    description:
-      "Registration deadline has been extended until 20 April 2025.",
-  },
-  {
-    id: 3,
-    title: "Opening Ceremony Details",
-    date: "12 April 2025",
-    description:
-      "Opening ceremony will take place at National Stadium at 6PM.",
-  },
-];
-
-const mockLocation = {
-  venue: "National Stadium Bangkok",
-  address: "123 Rama 1 Road, Pathumwan, Bangkok 10330",
-  description:
-    "Main venue for track & field, swimming, and opening ceremony events.",
-};
-
   useEffect(() => {
     if (joinMode) return;
 
@@ -94,7 +52,7 @@ const mockLocation = {
   }, [joinMode]);
 
   // ===============================
-  // Checkbox Logic
+  // Checkbox Logic (UNCHANGED)
   // ===============================
   const toggleSport = (sport: string) => {
     setSelectedSports((prev) =>
@@ -105,53 +63,134 @@ const mockLocation = {
   };
 
   const [toast, setToast] = useState<{
-  message: string;
-  type: "success" | "error";
-} | null>(null);
+    message: string;
+    type: "success" | "error";
+  } | null>(null);
 
-const handleSubmit = async () => {
-  try {
-    // Simulate backend request
-    await new Promise((resolve) => setTimeout(resolve, 800));
+  // ===============================
+  // ✅ UPDATED SUBMIT (REAL API CALL)
+  // ===============================
+  const handleSubmit = async () => {
+    if (selectedSports.length === 0) {
+      setToast({
+        message: "Please select at least one competition.",
+        type: "error",
+      });
+      return;
+    }
 
-    setSubmitted(true);
+    try {
+      setIsSubmitting(true);
 
-    setToast({
-      message: submitted ? "Changes saved successfully!" : "Successfully joined competition!",
-      type: "success",
-    });
+      await Promise.all(
+        selectedSports.map((sportName) =>
+          fetch("/api/registrations", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              athlete_id: currentAthleteId,
+              registered_sport_id: sportMap[sportName],
+            }),
+          })
+        )
+      );
 
-  } catch (err) {
-    setToast({
-      message: "Something went wrong. Please try again.",
-      type: "error",
-    });
-  }
+      setSubmitted(true);
 
-  // Auto remove after 3 seconds
-  setTimeout(() => {
-    setToast(null);
-  }, 3000);
-};
+      setToast({
+        message: submitted
+          ? "Changes saved successfully!"
+          : "Successfully joined competition!",
+        type: "success",
+      });
+
+    } catch (err) {
+      setToast({
+        message: "Something went wrong. Please try again.",
+        type: "error",
+      });
+    } finally {
+      setIsSubmitting(false);
+
+      setTimeout(() => {
+        setToast(null);
+      }, 3000);
+    }
+  };
+
+  // ===============================
+  // MOCK DATA (UNCHANGED)
+  // ===============================
+  const mockTournaments = [
+    {
+      id: 1,
+      sport: "Swimming",
+      competition: "100m Freestyle S8",
+      disability: "Physical Impairment",
+      date: "10 May 2025 · 09:00 AM",
+    },
+    {
+      id: 2,
+      sport: "Cycling",
+      competition: "Road Race C4",
+      disability: "Lower Limb Disability",
+      date: "12 May 2025 · 01:30 PM",
+    },
+    {
+      id: 3,
+      sport: "Badminton",
+      competition: "Men Singles SL3",
+      disability: "Standing Lower",
+      date: "15 May 2025 · 11:00 AM",
+    },
+  ];
+
+  const mockAnnouncements = [
+    {
+      id: 1,
+      title: "Competition Schedule Updated",
+      date: "5 April 2025",
+      description:
+        "Please check the updated match schedules due to venue adjustment.",
+    },
+    {
+      id: 2,
+      title: "Athlete Registration Deadline Extended",
+      date: "8 April 2025",
+      description:
+        "Registration deadline has been extended until 20 April 2025.",
+    },
+    {
+      id: 3,
+      title: "Opening Ceremony Details",
+      date: "12 April 2025",
+      description:
+        "Opening ceremony will take place at National Stadium at 6PM.",
+    },
+  ];
+
+  const mockLocation = {
+    venue: "National Stadium Bangkok",
+    address: "123 Rama 1 Road, Pathumwan, Bangkok 10330",
+    description:
+      "Main venue for track & field, swimming, and opening ceremony events.",
+  };
 
   return (
     <div className="flex bg-black text-white min-h-screen">
-
-      {/* ===============================
-          SIDEBAR
-      =============================== */}
+      {/* SIDEBAR (UNCHANGED) */}
       <aside className="w-64 p-6 border-r border-gray-800 sticky top-0 h-screen">
-
         <h2 className="text-cyan-400 text-xl font-bold mb-8">
           ASEAN PARAGAMES 2025
         </h2>
 
         <nav className="space-y-4 text-sm">
-
           {!joinMode && (
             <>
               <button
-                onClick={() => tournamentRef.current?.scrollIntoView({ behavior: "smooth" })}
+                onClick={() =>
+                  tournamentRef.current?.scrollIntoView({ behavior: "smooth" })
+                }
                 className={`block w-full text-left px-3 py-2 rounded ${
                   activeSection === "tournament"
                     ? "bg-cyan-500 text-black"
@@ -162,7 +201,9 @@ const handleSubmit = async () => {
               </button>
 
               <button
-                onClick={() => announcementRef.current?.scrollIntoView({ behavior: "smooth" })}
+                onClick={() =>
+                  announcementRef.current?.scrollIntoView({ behavior: "smooth" })
+                }
                 className={`block w-full text-left px-3 py-2 rounded ${
                   activeSection === "announcement"
                     ? "bg-cyan-500 text-black"
@@ -173,7 +214,9 @@ const handleSubmit = async () => {
               </button>
 
               <button
-                onClick={() => locationRef.current?.scrollIntoView({ behavior: "smooth" })}
+                onClick={() =>
+                  locationRef.current?.scrollIntoView({ behavior: "smooth" })
+                }
                 className={`block w-full text-left px-3 py-2 rounded ${
                   activeSection === "location"
                     ? "bg-cyan-500 text-black"
@@ -203,13 +246,10 @@ const handleSubmit = async () => {
         </nav>
       </aside>
 
-      {/* ===============================
-          CONTENT
-      =============================== */}
+      {/* MAIN CONTENT (UNCHANGED UI) */}
       <main className="flex-1 px-16 py-12 space-y-32">
-
         {!joinMode ? (
-        <>
+          <>
             {/* ================= TOURNAMENT ================= */}
             <section id="tournament" ref={tournamentRef}>
             <div className="bg-gray-900 p-10 rounded-2xl">
@@ -292,46 +332,58 @@ const handleSubmit = async () => {
                 </div>
             </div>
             </section>
-        </>
+          </>
         ) : (
           <div className="bg-gray-900 p-10 rounded-2xl max-w-3xl">
             <h2 className="text-3xl text-cyan-400 mb-10">
               JOIN COMPETITION
             </h2>
 
-            {["Swimming", "Cycling", "Badminton", "Tennis", "Track Running"].map((sport) => (
-              <label key={sport} className="flex items-center gap-4 mb-6 text-lg">
-                <input
-                  type="checkbox"
-                  checked={selectedSports.includes(sport)}
-                  onChange={() => toggleSport(sport)}
-                  className="w-5 h-5"
-                />
-                {sport}
-              </label>
-            ))}
+            {["Swimming", "Cycling", "Badminton", "Tennis", "Track Running"].map(
+              (sport) => (
+                <label
+                  key={sport}
+                  className="flex items-center gap-4 mb-6 text-lg"
+                >
+                  <input
+                    type="checkbox"
+                    checked={selectedSports.includes(sport)}
+                    onChange={() => toggleSport(sport)}
+                    className="w-5 h-5"
+                  />
+                  {sport}
+                </label>
+              )
+            )}
 
             <button
               onClick={handleSubmit}
-              className="mt-10 bg-cyan-500 text-black px-6 py-2 rounded-full"
+              disabled={isSubmitting}
+              className="mt-10 bg-cyan-500 text-black px-6 py-2 rounded-full disabled:opacity-50"
             >
-              {submitted ? "SAVE" : "SUBMIT"}
+              {isSubmitting
+                ? "Submitting..."
+                : submitted
+                ? "SAVE"
+                : "SUBMIT"}
             </button>
           </div>
         )}
-
       </main>
+
       {toast && (
         <div
-            className={`fixed bottom-6 right-6 px-6 py-3 rounded-lg shadow-lg transition-all duration-300
-            ${toast.type === "success"
-                ? "bg-green-500 text-black"
-                : "bg-red-500 text-white"}
-            `}
+          className={`fixed bottom-6 right-6 px-6 py-3 rounded-lg shadow-lg transition-all duration-300
+          ${
+            toast.type === "success"
+              ? "bg-green-500 text-black"
+              : "bg-red-500 text-white"
+          }
+          `}
         >
-            {toast.message}
+          {toast.message}
         </div>
-        )}
+      )}
     </div>
   );
 }
