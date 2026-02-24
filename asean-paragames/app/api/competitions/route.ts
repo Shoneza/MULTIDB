@@ -1,20 +1,9 @@
 import { NextResponse,NextRequest } from 'next/server';
 import pool from '../../../db';
 
-export async function GET(request: NextRequest) {
+export async function GET() {
   try {
-    const { searchParams } = new URL(request.url);
-    const sportId = searchParams.get('sportId');
-
-    let query = 'SELECT * FROM competitions';
-    let params: any[] = [];
-
-    if (sportId) {
-      query += ' WHERE sport_id = $1';
-      params = [sportId];
-    }
-
-    const result = await pool.query(query, params);
+    const result = await pool.query('SELECT * FROM competitions');
     return NextResponse.json(result.rows);
   } catch (error) {
     return NextResponse.json({ error: 'Failed to fetch competitions' }, { status: 500 });
