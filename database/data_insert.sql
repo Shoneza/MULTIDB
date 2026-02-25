@@ -28,19 +28,37 @@ VALUES
     -- (DEFAULT,'Nap','1','nap@gmail.com','123456789012','NAPHAPACH','PUNBUA','F','BUDDHISM','THAI','O+','THAILAND','PHYSICAL','LOWER LIMB',TRUE,55,165),
     -- (DEFAULT,'Didit','2','didit@gmail.com','234567890123','DIDIT','DIANTORO','M','NONE','INDONESIAN','A+','INDONESIA','PHYSICAL','LOWER LIMB',FALSE,70,180),
     -- (DEFAULT,'Siti','3','siti@gmail.com','345678901234','SITI','NURHALIZA','F','ISLAM','MALAYSIAN','B+','MALAYSIA','VISUAL','TOTAL BLINDNESS',FALSE,60,170);
-    (DEFAULT,'Nap','1','nap@gmail.com','123456789012','NAPHAPACH','PUNBUA','F','BUDDHISM','THAI','O+','THAILAND',TRUE,55,165),
-    (DEFAULT,'Didit','2','didit@gmail.com','234567890123','DIDIT','DIANTORO','M','NONE','INDONESIAN','A+','INDONESIA',FALSE,70,180),
-    (DEFAULT,'Siti','3','siti@gmail.com','345678901234','SITI','NURHALIZA','F','ISLAM','MALAYSIAN','B+','MALAYSIA',FALSE,60,170);
+    (DEFAULT,'Nap','1','nap@gmail.com','123456789012','NAPHAPACH','PUNBUA','F','BUDDHISM','THAI','O+','THAILAND',TRUE,55,165,'Impaired Muscle Power'),
+    (DEFAULT,'Didit','2','didit@gmail.com','234567890123','DIDIT','DIANTORO','M','NONE','INDONESIAN','A+','INDONESIA',FALSE,70,18,'Impaired Passive Range of Movement'),
+    (DEFAULT,'Siti','3','siti@gmail.com','345678901234','SITI','NURHALIZA','F','ISLAM','MALAYSIAN','B+','MALAYSIA',FALSE,60,170,'Impaired Muscle Power');
 INSERT INTO competitions
 VALUES
-    (DEFAULT,'Javaellin Throw Female Semi-Final',1,'F','2026-01-23 09:00:00'), -- Javelin Throw
-    (DEFAULT,'High Jump Female Semi-Final',2,'F','2026-01-24 14:00:00'), -- High Jump
-    (DEFAULT,'Long Jump Female Semi-Final',3,'F','2026-01-22 15:00:00'), -- Long Jump
-    (DEFAULT,'Shot Put Male Semi-Final',4,'M','2026-01-21 14:00:00'); -- Shot Put
+    (DEFAULT,'Javaellin Throw Female Semi-Final',1,'F','Impaired Muscle Power','2026-01-23 09:00:00'), -- Javelin Throw
+    (DEFAULT,'High Jump Female Semi-Final',2,'F','Impaired Muscle Power','2026-01-24 14:00:00'), -- High Jump
+    (DEFAULT,'Long Jump Female Semi-Final',3,'F','Impaired Muscle Power','2026-01-22 15:00:00'), -- Long Jump
+    (DEFAULT,'Shot Put Male Semi-Final',4,'M','Impaired Passive Range of Movement','2026-01-21 14:00:00'); -- Shot Put
+
+INSERT INTO registrations
+VALUES
+    (DEFAULT,1,1),
+    (DEFAULT,1,2),
+    (DEFAULT,1,3),
+    (DEFAULT,3,1),
+    (DEFAULT,3,2),
+    (DEFAULT,3,3),
+    (DEFAULT,3,4);
+CREATE TABLE participations (
+    competition_id INT NOT NULL REFERENCES competitions(competition_id) ON DELETE CASCADE,
+    athlete_id INT REFERENCES athletes(athlete_id) ON DELETE CASCADE,
+    attempt_number INT,
+    score FLOAT,
+    PRIMARY KEY (competition_id, athlete_id,attempt_number)
+);
 INSERT INTO participations
 VALUES
-    (DEFAULT,4,2),
-    -- (DEFAULT,4,3),
-    -- (DEFAULT,2,2),
-    (DEFAULT,1,1);
-    (DEFAULT,1,2);
+    (1,1,1,NULL)
+    ,(1,1,2,NULL)
+    ,(1,1,3,NULL)
+    ,(1,2,1,NULL)
+    ,(1,2,2,NULL)
+    ,(1,2,3,NULL)

@@ -1,8 +1,17 @@
 import { NextResponse,NextRequest } from 'next/server';
 import pool from '../../../db';
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
+    const {searchParams} = new URL(request.url);
+    const competitionID = searchParams.get('competitionId');
+    if (competitionID) {
+        const result = await pool.query('SELECT * FROM competitions WHERE competition_id = $1', [competitionID]);
+        if (result.rows.length === 0) {
+            return NextResponse.json({ error: 'Competition not found' }, { status: 404 });
+        }
+        return NextResponse.json(result.rows[0], { status: 200 });
+      }
     const result = await pool.query('SELECT * FROM competitions');
     return NextResponse.json(result.rows);
   } catch (error) {

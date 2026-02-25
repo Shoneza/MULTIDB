@@ -11,6 +11,7 @@ export async function GET(request: NextRequest) {
                 p.athlete_id,
                 a.name_en,
                 a.surname_en,
+                a.nationality,
                 p.attempt_number,
                 p.score
             FROM participations p
@@ -23,6 +24,7 @@ export async function GET(request: NextRequest) {
         return NextResponse.json(result.rows);
     }
     const result = await pool.query(`SELECT * FROM participations ORDER BY competition_id, athlete_id, attempt_number`);
+    
     return NextResponse.json(result.rows);
   }
   catch (error) {

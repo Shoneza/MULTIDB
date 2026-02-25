@@ -46,6 +46,22 @@ export default function AthleteDashboard() {
     const data = await res.json();
     setSports(data);
   };
+  const fetchRegisteredSports = async () => {
+    const searchParams = new URLSearchParams({
+      athleteId: currentAthleteId.toString(),
+    });
+    try {
+      const res = await fetch(`/api/registration?${searchParams.toString()}`);
+      const data = await res.json();
+      const registeredSportNames = data.map((reg: any) => {
+        const sport = sports.find((s) => s.sport_id === reg.registered_sport_id);
+        return sport ? sport.sport_name : null;
+      }).filter((name: string | null) => name !== null);
+      setSelectedSports(registeredSportNames);
+    } catch (error) {
+
+    }
+  }
 
   // ===============================
   // Scroll Spy (UNCHANGED)
@@ -109,7 +125,7 @@ export default function AthleteDashboard() {
 
     try {
       setIsSubmitting(true);
-
+      await resetRegistration(); // Clear previous registrations before submitting new ones
       // Get sport_ids from selected sports
       const selectedSportIds = selectedSports.map(sport => sportMap[sport]).filter(id => id !== undefined);
 
@@ -121,7 +137,7 @@ export default function AthleteDashboard() {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            athlete_id: currentAthleteId, // Using 1 as specified
+            athleteId: currentAthleteId, // Using 1 as specified
             registered_sport_id: sportId,
           }),
         });
@@ -153,7 +169,21 @@ export default function AthleteDashboard() {
       }, 3000);
     }
   };
-
+  const resetRegistration = async () => {
+    try {
+      const response = await fetch("/api/registration", {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          athlete_id: currentAthleteId,
+        })
+      });
+    } catch (error) {
+      console.error("Error resetting registration:", error);
+    }
+  }
   // ===============================
   // MOCK DATA (UNCHANGED)
   // ===============================

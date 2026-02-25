@@ -26,8 +26,8 @@ export default function RootLayout({
                     Requests
                   </Link>
                 </li>
-                <li className={`${pathname === '/admin/tournament-list' ? 'bg-cyan-400 font-bold text-black' : ''} py-2 px-3 text-white font-semibold rounded`}>
-                  <Link href="/admin/tournament-list">
+                <li className={`${pathname === '/admin/competitions' ? 'bg-cyan-400 font-bold text-black' : ''} py-2 px-3 text-white font-semibold rounded`}>
+                  <Link href="/admin/competitions">
                     Tournament List
                   </Link>
                 </li>
