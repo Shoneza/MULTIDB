@@ -26,7 +26,6 @@ export async function POST(request: NextRequest) {
     body.weight,
     body.height,
     body.disability_type
-    
   ];
 
   try {
@@ -42,8 +41,16 @@ export async function GET(request:NextRequest) {
   try {
     const {searchParams} = new URL(request.url);
     const disabilityType = searchParams.get('disabilityType');
+    const username = searchParams.get('username');
     if (disabilityType) {
       const result = await pool.query('SELECT * FROM athletes WHERE disability_type = $1', [disabilityType]);
+      return NextResponse.json(result.rows);
+    }
+    if (username) {
+      const result = await pool.query('SELECT * FROM athletes WHERE username = $1', [username]);
+      if (result.rows.length === 0) {
+        return NextResponse.json({ error: "Athlete not found" }, { status: 404 });
+      }
       return NextResponse.json(result.rows);
     }
     const result = await pool.query('SELECT * FROM athletes');
