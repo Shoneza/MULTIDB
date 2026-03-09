@@ -81,7 +81,7 @@ export default function HomePage() {
     const res = await fetch("/api/competitions", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(formData),
+      body: JSON.stringify({ ...formData, action: 'add' }),
     });
 
     if (res.ok) {

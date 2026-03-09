@@ -181,21 +181,32 @@ export default  function TournamentDetailClient({competitionId}:Props) {
     },[athletes])
     function handleSaveScore() {
       if (!editing) return;
+      
       setAthletes((athletes) =>
         athletes.map((a) => {
           if (a.id === editing.athleteId) {
             const newAttempts = [...a.attempts];
             newAttempts[editing.attemptIdx] = parseFloat(editValue);
-            return { ...a, attempts: newAttempts };
+            let currentBest = a.best_score;
+            console.log(`Current best for athlete ${a.id}:`, currentBest);
+            console.log(`New score for attempt ${editing.attemptIdx + 1}:`, parseFloat(editValue));
+            console.log(`Comparing new score with current best:`, parseFloat(editValue), currentBest);
+            if (a.best_score === undefined || parseFloat(editValue) > a.best_score) {
+              
+              currentBest = parseFloat(editValue);
+            }
+            saveScoreToDB(editing.athleteId, editing.attemptIdx, parseFloat(editValue), currentBest as number);
+            return { ...a, attempts: newAttempts, best_score: currentBest };
           }
           return a;
         })
       );
-      saveScoreToDB(editing.athleteId, editing.attemptIdx, parseFloat(editValue));
+
+      
       setEditing(null);
       setEditValue("");
     }
-    async function saveScoreToDB(athleteId: number, attemptIdx: number, score: number) {
+    async function saveScoreToDB(athleteId: number, attemptIdx: number, score: number, bestScore : number) {
       try {
         const res = await fetch('/api/participations',{
           method: 'PATCH',
@@ -207,6 +218,7 @@ export default  function TournamentDetailClient({competitionId}:Props) {
             athlete_id: athleteId,
             attempt_number: attemptIdx + 1,
             score: score,
+            best_score: bestScore,
           })
         });
         if (!res.ok) {
@@ -295,7 +307,15 @@ export default  function TournamentDetailClient({competitionId}:Props) {
     async function fetchParticipations() {
       const searchParams = new URLSearchParams({ competitionId });
       const res = await fetch(`/api/participations?${searchParams.toString()}`);
+      // const res = await fetch('/api/participations', {
+      //   method: 'GET',
+      //   headers: {
+      //     'Content-Type': 'application/json',
+      //   },
+      //   body: JSON.stringify({ competition_id: competitionId })
+      // });
       const data = await res.json();
+      console.log("Participations data:", data);
       const grouped: Record<number, Athlete> = {};
       let maxAttempt = 0;
       for (const p of data) {
@@ -306,15 +326,15 @@ export default  function TournamentDetailClient({competitionId}:Props) {
       data.forEach((p:any)=> {
         if (!grouped[p.athlete_id]) {
           const attemptsArray = new Array(maxAttempt).fill(undefined);
+          const athleteBestScore = p.best_score ? p.best_score : undefined;
           grouped[p.athlete_id] = {
             id: p.athlete_id,
             firstName: p.name_en,
             surname: p.surname_en,
             attempts: attemptsArray,
             nationality: p.nationality,
-            best_score: p.best_score,
+            best_score: athleteBestScore,
           }
-          
           grouped[p.athlete_id].attempts[p.attempt_number - 1] = p.score;
         } else {
           grouped[p.athlete_id].attempts[p.attempt_number - 1] = p.score;
@@ -467,7 +487,6 @@ export default  function TournamentDetailClient({competitionId}:Props) {
         <section id="scoreboard" ref={scoreboardRef}>
           <div className="bg-gray-900 p-10 rounded-2xl max-w-3xl mx-auto">
             <h2 className="text-2xl mb-6">SCOREBOARD</h2>
-
             <div className="overflow-x-auto rounded-xl shadow-lg">
               <table className="w-full border-separate border-spacing-0 bg-[#1a2233] text-white">
                 <thead>
@@ -478,6 +497,7 @@ export default  function TournamentDetailClient({competitionId}:Props) {
                     {[...Array(maxAttempts)].map((_, i) => (
                       <th key={i} className="py-3 px-4 border-b border-cyan-800 text-center">Attempt {i + 1}</th>
                     ))}
+                    <th className="py-3 px-4 border-b border-cyan-800 text-center">Best Score</th>
                     <th className="py-3 px-4 border-b border-cyan-800 text-center"></th>
                   </tr>
                 </thead>
@@ -538,6 +558,7 @@ export default  function TournamentDetailClient({competitionId}:Props) {
                           )}
                         </td>
                       ))}
+                      <td className={`${athlete.best_score === undefined || athlete.best_score === 0 ? 'text-gray-500' : 'text-white'} text-center`}>{athlete.best_score === undefined || athlete.best_score === 0 ? 'No best score yet' : athlete.best_score}</td>
                       <td className="py-3 px-4 border-b border-[#22304a] text-center">
                         <button
                           onClick={() => handleAddAttempt()}
