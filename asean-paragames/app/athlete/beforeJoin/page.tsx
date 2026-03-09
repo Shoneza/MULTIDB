@@ -6,6 +6,7 @@ interface Sport {
 }
 
 import { useEffect, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 
 
 
@@ -13,14 +14,37 @@ type Section = "tournament" | "announcement" | "location" | "mycompetition";
 
 export default function AthleteDashboard() {
   const [activeSection, setActiveSection] = useState<Section>("tournament");
+  const router = useRouter();
+
   const [joinMode, setJoinMode] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [selectedSports, setSelectedSports] = useState<string[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [sports, setSports] = useState<Sport[]>([]);
 
-  // ✅ ADD: Replace with real logged-in athlete id
-  const currentAthleteId = 1;
+  // ✅ ADD: Replace with real logged-in athlete id stored in localStorage
+  const [currentAthleteId, setCurrentAthleteId] = useState<number | null>(null);
+  // use undefined to indicate not yet loaded
+  const [currentUsername, setCurrentUsername] = useState<string | null | undefined>(undefined);
+
+  useEffect(() => {
+    const storedId = localStorage.getItem('activeUserId');
+    const storedName = localStorage.getItem('activeUser');
+    setCurrentUsername(storedName ?? null);
+    if (storedId) {
+      const num = Number(storedId);
+      if (!isNaN(num)) {
+        setCurrentAthleteId(num);
+      }
+    }
+  }, []);
+
+  // redirect only after we've attempted to load username
+  useEffect(() => {
+    if (currentUsername === null) {
+      router.push('/login');
+    }
+  }, [currentUsername]);
 
   // ✅ ADD: Sport name → sport_id mapping
   const sportMap: Record<string, number> = {
@@ -39,29 +63,36 @@ export default function AthleteDashboard() {
   const myCompetitionRef = useRef<HTMLElement | null>(null);
 
   // ===============================
-// Fetch Sports Function
+// Mock Sports Data
 // ===============================
-  const fetchSports = async () => {
-    const res = await fetch("/api/sports");
-    const data = await res.json();
-    setSports(data);
-  };
-  const fetchRegisteredSports = async () => {
-    const searchParams = new URLSearchParams({
-      athleteId: currentAthleteId.toString(),
-    });
-    try {
-      const res = await fetch(`/api/registration?${searchParams.toString()}`);
-      const data = await res.json();
-      const registeredSportNames = data.map((reg: any) => {
-        const sport = sports.find((s) => s.sport_id === reg.registered_sport_id);
-        return sport ? sport.sport_name : null;
-      }).filter((name: string | null) => name !== null);
-      setSelectedSports(registeredSportNames);
-    } catch (error) {
+  const mockSports: Sport[] = [
+    { sport_id: 1, sport_name: "Javelin Throw" },
+    { sport_id: 2, sport_name: "High Jump" },
+    { sport_id: 3, sport_name: "Long Jump" },
+    { sport_id: 4, sport_name: "Shot Put" },
+    { sport_id: 5, sport_name: "Discus Throw" },
+    { sport_id: 6, sport_name: "Pole Vault" },
+    { sport_id: 7, sport_name: "Triple Jump" },
+  ];
 
+  // Load registered sports from localStorage
+  const registrationKey = () => {
+    if (currentAthleteId === null) return null;
+    // include username as well so two users with same numeric id don’t collide
+    const name = currentUsername || '';
+    return `athleteRegistrations_${currentAthleteId}_${name}`;
+  };
+
+  const loadRegisteredSports = () => {
+    const key = registrationKey();
+    if (!key) return;
+    const storedRegistrations = localStorage.getItem(key);
+    if (storedRegistrations) {
+      const registrations = JSON.parse(storedRegistrations);
+      setSelectedSports(registrations);
+      setSubmitted(true);
     }
-  }
+  };
 
   // ===============================
   // Scroll Spy (UNCHANGED)
@@ -91,9 +122,14 @@ export default function AthleteDashboard() {
   // ===============================
 // Fetch Sports Data
 // ===============================
+  const fetchSports = () => {
+    setSports(mockSports);
+    loadRegisteredSports();
+  };
+
   useEffect(() => {
     fetchSports();
-  }, []);
+  }, [currentAthleteId, currentUsername]);
 
   // ===============================
   // Checkbox Logic (UNCHANGED)
@@ -114,7 +150,7 @@ export default function AthleteDashboard() {
   // ===============================
 // ✅ UPDATED SUBMIT (REAL API CALL)
 // ===============================
-  const handleSubmit = async () => {
+  const handleSubmit = () => {
     if (selectedSports.length === 0) {
       setToast({
         message: "Please select at least one competition.",
@@ -123,66 +159,46 @@ export default function AthleteDashboard() {
       return;
     }
 
+    if (currentAthleteId === null) {
+      setToast({ message: 'Athlete ID not found. Please log in.', type: 'error' });
+      return;
+    }
+
     try {
       setIsSubmitting(true);
-      await resetRegistration(); // Clear previous registrations before submitting new ones
-      // Get sport_ids from selected sports
-      const selectedSportIds = selectedSports.map(sport => sportMap[sport]).filter(id => id !== undefined);
+      // clear any previous registrations in localStorage
+      resetRegistration();
 
-      // Loop through each selected sport and register one by one
-      for (const sportId of selectedSportIds) {
-        const response = await fetch("/api/registration", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            athleteId: currentAthleteId, // Using 1 as specified
-            registered_sport_id: sportId,
-          }),
-        });
-
-        if (!response.ok) {
-          throw new Error(`Failed to register for sport ID ${sportId}`);
-        }
+      // store the selected sports in localStorage directly
+      const key = registrationKey();
+      if (key) {
+        localStorage.setItem(key, JSON.stringify(selectedSports));
       }
 
       setSubmitted(true);
-
       setToast({
         message: submitted
           ? "Changes saved successfully!"
           : "Successfully joined competition!",
         type: "success",
       });
-
-    } catch {
+    } catch (err: any) {
+      console.error('submit error', err);
       setToast({
-        message: "Something went wrong. Please try again.",
+        message: err?.message ? err.message : "Something went wrong. Please try again.",
         type: "error",
       });
     } finally {
       setIsSubmitting(false);
-
       setTimeout(() => {
         setToast(null);
       }, 3000);
     }
   };
-  const resetRegistration = async () => {
-    try {
-      const response = await fetch("/api/registration", {
-        method: "DELETE",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          athlete_id: currentAthleteId,
-        })
-      });
-    } catch (error) {
-      console.error("Error resetting registration:", error);
-    }
+  const resetRegistration = () => {
+    const key = registrationKey();
+    if (!key) return;
+    localStorage.removeItem(key);
   }
   // ===============================
   // MOCK DATA (UNCHANGED)
@@ -243,7 +259,15 @@ export default function AthleteDashboard() {
   };
 
   return (
-    <div className="flex bg-black text-white min-h-screen">
+    <>
+      <header className="p-4 bg-gray-800 text-white">
+        {currentUsername ? (
+          <span className="text-sm">Logged in as {currentUsername}</span>
+        ) : (
+          <span className="text-sm">Not logged in</span>
+        )}
+      </header>
+      <div className="flex bg-black text-white min-h-screen">
       {/* SIDEBAR (UNCHANGED) */}
       <aside className="w-64 p-6 border-r border-gray-800 sticky top-0 h-screen">
         <h2 className="text-cyan-400 text-xl font-bold mb-8">
@@ -485,5 +509,6 @@ export default function AthleteDashboard() {
         </div>
       )}
     </div>
+    </>
   );
 }

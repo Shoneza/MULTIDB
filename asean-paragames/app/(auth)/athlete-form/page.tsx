@@ -16,6 +16,7 @@ export default function AthleteFormPage() {
     teamName: "",
     weight: "",
     height: "",
+    disability: "",
   });
   const [saved, setSaved] = useState(false);
 
@@ -30,6 +31,29 @@ export default function AthleteFormPage() {
     e.preventDefault();
     setSaved(true);
     alert("Profile saved (front-end only)");
+    const user = localStorage.getItem('activeUser');
+    if (user) {
+      // save profile data
+      const storedProfiles = localStorage.getItem('userProfiles');
+      const profiles: Record<string, any> = storedProfiles ? JSON.parse(storedProfiles) : {};
+      profiles[user] = profile;
+      localStorage.setItem('userProfiles', JSON.stringify(profiles));
+
+      // if there is a pending registration for this user, finalize it
+      const pending = localStorage.getItem('pendingRegistration');
+      if (pending) {
+        try {
+          const { username, password } = JSON.parse(pending);
+          if (username === user) {
+            const storedUsers = localStorage.getItem('registeredUsers');
+            const users: Record<string, string> = storedUsers ? JSON.parse(storedUsers) : {};
+            users[username] = password;
+            localStorage.setItem('registeredUsers', JSON.stringify(users));
+            localStorage.removeItem('pendingRegistration');
+          }
+        } catch {} // ignore parse errors
+      }
+    }
   };
 
   return (
@@ -91,6 +115,30 @@ export default function AthleteFormPage() {
               <div className="grid grid-cols-2 gap-3">
                 <input name="weight" value={profile.weight} onChange={handleChange} placeholder="Weight (kg)" className="rounded-full px-3 py-2 bg-white text-black placeholder-gray-500" />
                 <input name="height" value={profile.height} onChange={handleChange} placeholder="Height (cm)" className="rounded-full px-3 py-2 bg-white text-black placeholder-gray-500" />
+              </div>
+              <div className="mt-3">
+                <h3 className="text-cyan-300 text-sm mb-2">DISABILITY CATEGORY</h3>
+                <select name="disability" value={profile.disability} onChange={handleChange} className="w-full rounded-full px-3 py-2 bg-white text-black placeholder-gray-500">
+                  <option value="">Select Disability Category</option>
+                  <option value="T20">T20</option>
+                  <option value="T32-34">T32-34</option>
+                  <option value="T35-38">T35-38</option>
+                  <option value="T40-41">T40-41</option>
+                  <option value="T42-44">T42-44</option>
+                  <option value="T45-47">T45-47</option>
+                  <option value="T51-54">T51-54</option>
+                  <option value="T61-64">T61-64</option>
+                  <option value="T71-T72">T71-T72</option>
+                  <option value="F11-13">F11-13</option>
+                  <option value="F20">F20</option>
+                  <option value="F31-34">F31-34</option>
+                  <option value="F35-38">F35-38</option>
+                  <option value="F40-41">F40-41</option>
+                  <option value="F42-44">F42-44</option>
+                  <option value="F45-46">F45-46</option>
+                  <option value="F51-57">F51-57</option>
+                  <option value="F61-64">F61-64</option>
+                </select>
               </div>
             </div>
 

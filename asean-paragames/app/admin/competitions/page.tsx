@@ -9,6 +9,7 @@ export interface Competition {
   disability_type: string;
   gender: string;
   schedule: string;
+  status: boolean;
 }
 
 interface Sport {
@@ -52,13 +53,26 @@ export default function HomePage() {
     const res = await fetch("/api/competitions");
     const data = await res.json();
 
-    const formatted = data.map((comp: any) => ({
-      id: comp.competition_id.toString(),
-      sportName: comp.sport_name,
-      competitionName: comp.competition_name,
-      gender: comp.gender,
-      schedule: new Date(comp.date_time).toISOString(),
-    }));
+    // load any saved statuses from localStorage
+    let statusOverrides: Record<string, boolean> = {};
+    try {
+      const stored = localStorage.getItem('competition-statuses');
+      if (stored) statusOverrides = JSON.parse(stored);
+    } catch {
+      // ignore
+    }
+
+    const formatted = data.map((comp: any) => {
+      const id = comp.competition_id.toString();
+      return {
+        id,
+        sportName: comp.sport_name,
+        competitionName: comp.competition_name,
+        gender: comp.gender,
+        schedule: new Date(comp.date_time).toISOString(),
+        status: statusOverrides[id] ?? false,
+      };
+    });
 
     setCompetitions(formatted);
   };
@@ -117,6 +131,22 @@ export default function HomePage() {
     if (response.ok) {
       fetchCompetitions();
     }}
+
+  // update status locally and persist in localStorage (no database yet)
+  const updateCompetitionStatus = (id: string, status: boolean) => {
+    setCompetitions((prev) =>
+      prev.map((c) => (c.id === id ? { ...c, status } : c))
+    );
+    try {
+      const stored = localStorage.getItem('competition-statuses');
+      const map = stored ? JSON.parse(stored) : {};
+      map[id] = status;
+      localStorage.setItem('competition-statuses', JSON.stringify(map));
+    } catch {
+      // ignore storage errors
+    }
+  };
+
   const handleDeleteSelected = async () => {
     await Promise.all(selectedIds.map(id => handleDeleteCompetition(id)));
 
@@ -198,7 +228,7 @@ export default function HomePage() {
                     : "border-gray-700 hover:border-gray-600"}
                 `}
               >
-                <div className="flex-1 grid grid-cols-4 gap-4">
+                <div className="flex-1 grid grid-cols-5 gap-4">
                   <div>
                     <p className="text-gray-400 text-sm">{c.sportName}</p>
                   </div>
@@ -221,6 +251,22 @@ export default function HomePage() {
                         minute: "2-digit",
                       })}
                     </p>
+                  </div>
+
+                  <div className="text-right">
+                    <select
+                      value={c.status ? "finished" : "ongoing"}
+                      onChange={(e) => {
+                        e.stopPropagation();
+                        const newStatus = e.target.value === "finished";
+                        updateCompetitionStatus(c.id, newStatus);
+                      }}
+                      className="bg-gray-700 text-sm rounded px-2 py-1"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <option value="ongoing">Ongoing</option>
+                      <option value="finished">Finished</option>
+                    </select>
                   </div>
                 </div>
               </div>

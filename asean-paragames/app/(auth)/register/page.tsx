@@ -21,8 +21,17 @@ export default function RegisterPage() {
       setError("รหัสผ่านไม่ตรงกัน");
       return;
     }
-    // Front-end only: simulate account creation
-    alert(`Registered ${username} (front-end only)`);
+    // save to localStorage only as pending until profile completed
+    const stored = localStorage.getItem('registeredUsers');
+    const users: Record<string, string> = stored ? JSON.parse(stored) : {};
+    if (users[username]) {
+      setError('ชื่อผู้ใช้นี้ได้รับการลงทะเบียนแล้ว');
+      return;
+    }
+    // store pending info
+    localStorage.setItem('pendingRegistration', JSON.stringify({ username, password }));
+    localStorage.setItem('activeUser', username);
+    alert(`Registered ${username}, please complete your athlete profile`);
     router.push('/athlete-form');
   };
 

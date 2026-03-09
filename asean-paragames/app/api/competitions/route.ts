@@ -48,3 +48,21 @@ export async function DELETE(request: NextRequest) {
     return NextResponse.json({ error: 'Failed to delete tournament' }, { status: 500 });
   }
 }
+
+export async function PUT(request: NextRequest) {
+  try {
+    const body = await request.json();
+    const { competitionId, status } = body;
+    if (!competitionId || typeof status !== 'boolean') {
+      return NextResponse.json({ error: 'competitionId and boolean status are required' }, { status: 400 });
+    }
+    await pool.query(
+      'UPDATE competitions SET status = $1 WHERE competition_id = $2',
+      [status, competitionId]
+    );
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    console.error('PUT /api/competitions error', error);
+    return NextResponse.json({ error: 'Failed to update tournament status' }, { status: 500 });
+  }
+}

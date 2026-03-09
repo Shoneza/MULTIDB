@@ -38,7 +38,8 @@ CREATE TABLE competitions (
     sport_id INT REFERENCES sports(sport_id),
     gender CHAR(1),
     disability_type VARCHAR(50),
-    date_time TIMESTAMP
+    date_time TIMESTAMP,
+    status BOOLEAN DEFAULT false
 );
 CREATE TABLE participations (
     competition_id INT NOT NULL REFERENCES competitions(competition_id) ON DELETE CASCADE,
