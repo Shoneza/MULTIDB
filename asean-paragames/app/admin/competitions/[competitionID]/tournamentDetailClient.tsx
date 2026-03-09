@@ -2,6 +2,7 @@
 'use client'
 import { useEffect, useState, useRef } from "react";
 import {Competition} from "../page";
+import {mapDisabilityCodeToName} from "../../../tool/disability";
 type Section = "description" | "athletes" | "scoreboard";
 
 type Athlete = {
@@ -10,6 +11,7 @@ type Athlete = {
   surname: string;
   nationality: string;
   attempts: number[];
+  best_score?: number;
 };
 interface AvailableAthlete {
     id: number;
@@ -36,24 +38,7 @@ export default  function TournamentDetailClient({competitionId}:Props) {
     const [competitionInfo, setCompetitionInfo] = useState<Competition | null>(null);
     const [sportID, setSportID] = useState<number | null>(null);
     const [activeSection, setActiveSection] = useState<Section>("description");
-
-
     const [athletes, setAthletes] = useState<Athlete[]>([]);
-
-    //get available athletes from database (not in this competition)
-    // const [available, setAvailable] = useState<Athlete[]>([
-    // { id: 1, firstName: "Somchai", surname: "Somsri", nationality: "Thailand", disability: "T", attempts: [] },
-    // { id: 2, firstName: "Aung", surname: "Tin", nationality: "Myanmar", disability: "T", attempts: [] },
-    // { id: 3, firstName: "Test1", surname: "Test1", nationality: "Thailand", disability: "T", attempts: [] },
-    // { id: 4, firstName: "Test2", surname: "Test2", nationality: "Myanmar", disability: "T", attempts: [] },
-    // { id: 5, firstName: "Test3", surname: "Test3", nationality: "Myanmar", disability: "T", attempts: [] },
-    // { id: 6, firstName: "Test4", surname: "Test4", nationality: "Vietnam", disability: "T", attempts: [] },
-    // { id: 7, firstName: "Test5", surname: "Test5", nationality: "Thailand", disability: "T", attempts: [] },
-    // { id: 8, firstName: "Test6", surname: "Test6", nationality: "Thailand", disability: "T", attempts: [] },
-    // { id: 9, firstName: "Test7", surname: "Test7", nationality: "Laos", disability: "T", attempts: [] },
-    // { id: 10, firstName: "Test8", surname: "Test8", nationality: "Laos", disability: "T", attempts: [] },
-    // { id: 11, firstName: "Test9", surname: "Test9", nationality: "Laos", disability: "T", attempts: [] },
-    // ]);
     const [availableAthletes, setAvailableAthletes] = useState<AvailableAthlete[]>([]);
 
     const [showSelectionModal, setShowSelectionModal] = useState(false);
@@ -74,26 +59,26 @@ export default  function TournamentDetailClient({competitionId}:Props) {
     // SCROLL SPY (auto highlight sidebar)
     // ===============================
     useEffect(() => {
-    const observer = new IntersectionObserver(
-        (entries) => {
-        entries.forEach((entry) => {
-            if (entry.isIntersecting) {
-            setActiveSection(entry.target.id as Section);
-            }
-        });
-        },
-        {
-        rootMargin: "-40% 0px -50% 0px", // trigger when near middle
-        threshold: 0
-        }
-    );
-  
+      const observer = new IntersectionObserver(
+          (entries) => {
+          entries.forEach((entry) => {
+              if (entry.isIntersecting) {
+              setActiveSection(entry.target.id as Section);
+              }
+          });
+          },
+          {
+          rootMargin: "-40% 0px -50% 0px", // trigger when near middle
+          threshold: 0
+          }
+      );
+    
 
-    if (descriptionRef.current) observer.observe(descriptionRef.current);
-    if (athletesRef.current) observer.observe(athletesRef.current);
-    if (scoreboardRef.current) observer.observe(scoreboardRef.current);
+      if (descriptionRef.current) observer.observe(descriptionRef.current);
+      if (athletesRef.current) observer.observe(athletesRef.current);
+      if (scoreboardRef.current) observer.observe(scoreboardRef.current);
 
-    return () => observer.disconnect();
+      return () => observer.disconnect();
     }, []);
 
     // ===============================
@@ -142,19 +127,35 @@ export default  function TournamentDetailClient({competitionId}:Props) {
         setShowSelectionModal(false);
         fetchParticipations();
     }
-
-    const handleAddAttempt = (athleteId: number) => {
-    const score = prompt("กรอกคะแนน Attempt ใหม่:");
-    if (score) {
-        setAthletes(athletes =>
-        athletes.map(a =>
-            a.id === athleteId
-            ? { ...a, attempts: [...a.attempts, parseFloat(score)] }
-            : a
-        )
-        );
+    
+    const handleAddAttempt = async () => {
+      // Add new attempt to all athletes
+      setAthletes((athletes)=> athletes.map(a => ({...a, attempts: [...a.attempts, 0]})));
+      maxAttempts + 1;
+      // Save new attempt to DB for all athletes
+      athletes.forEach(async (athlete) => {
+        try{
+          const res = await fetch('/api/participations',{
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',   
+            },
+            body: JSON.stringify({
+              action: 'add_attempt',
+              competition_id: competitionId,
+              athlete_id: athlete.id,
+              
+            })
+          
+          });
+          if (!res.ok){
+            console.error(`Failed to add attempt for athlete ${athlete.id}:`, await res.text());
+          }
+        } catch(error) {
+           
+        }
+      });
     }
-    };
 
     function handleEditScore(athleteId: number, attemptIdx: number, currentScore: number | undefined) {
         setEditing({ athleteId, attemptIdx });
@@ -178,21 +179,43 @@ export default  function TournamentDetailClient({competitionId}:Props) {
         console.log("Athletes updated:", athletes);
         fetchAvailableAthletes();
     },[athletes])
-  function handleSaveScore() {
-    if (!editing) return;
-    setAthletes((athletes) =>
-      athletes.map((a) => {
-        if (a.id === editing.athleteId) {
-          const newAttempts = [...a.attempts];
-          newAttempts[editing.attemptIdx] = parseFloat(editValue);
-          return { ...a, attempts: newAttempts };
+    function handleSaveScore() {
+      if (!editing) return;
+      setAthletes((athletes) =>
+        athletes.map((a) => {
+          if (a.id === editing.athleteId) {
+            const newAttempts = [...a.attempts];
+            newAttempts[editing.attemptIdx] = parseFloat(editValue);
+            return { ...a, attempts: newAttempts };
+          }
+          return a;
+        })
+      );
+      saveScoreToDB(editing.athleteId, editing.attemptIdx, parseFloat(editValue));
+      setEditing(null);
+      setEditValue("");
+    }
+    async function saveScoreToDB(athleteId: number, attemptIdx: number, score: number) {
+      try {
+        const res = await fetch('/api/participations',{
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            competition_id: competitionId,
+            athlete_id: athleteId,
+            attempt_number: attemptIdx + 1,
+            score: score,
+          })
+        });
+        if (!res.ok) {
+          console.error(`Failed to save score for athlete ${athleteId}:`, await res.text());
         }
-        return a;
-      })
-    );
-    setEditing(null);
-    setEditValue("");
-  }
+      } catch (error) {
+
+      }
+    }
     async function fetchCompetitionInfo() {
         if (!competitionId) return;
         
@@ -243,6 +266,7 @@ export default  function TournamentDetailClient({competitionId}:Props) {
     }
 
 
+
     async function fetchAvailableAthletes() {
         if (!sportID || !competitionInfo) return;
         const params = new URLSearchParams({
@@ -288,7 +312,9 @@ export default  function TournamentDetailClient({competitionId}:Props) {
             surname: p.surname_en,
             attempts: attemptsArray,
             nationality: p.nationality,
+            best_score: p.best_score,
           }
+          
           grouped[p.athlete_id].attempts[p.attempt_number - 1] = p.score;
         } else {
           grouped[p.athlete_id].attempts[p.attempt_number - 1] = p.score;
@@ -376,7 +402,7 @@ export default  function TournamentDetailClient({competitionId}:Props) {
               SPORT TYPE: {competitionInfo?.sportName || "Loading..."}
             </p>
             <p className="text-gray-400 mb-2">
-              DISABILITY TYPE: {competitionInfo?.disability_type || "Loading..."}
+              DISABILITY TYPE: { competitionInfo?.disability_type ? mapDisabilityCodeToName(competitionInfo?.disability_type) : "Loading..."}
             </p>
             <p className="text-gray-400 mb-2">
                 GENDER: {
@@ -491,17 +517,17 @@ export default  function TournamentDetailClient({competitionId}:Props) {
                             </div>
                           ) : (
                             <div className="flex flex-col items-center">
-                              {athlete.attempts[i] !== undefined ? (
+                              {athlete.attempts[i] !== undefined && athlete.attempts[i] !== 0 && athlete.attempts[i] !== null ?  (
                                 <>
                                   <span>{athlete.attempts[i]}</span>
                                   <button
-                                    onClick={() => handleEditScore(athlete.id, i, athlete.attempts[i])}
+                                    onClick={() =>{ console.log("Athlete attempt number = ",athlete.attempts[i]); handleEditScore(athlete.id, i, athlete.attempts[i])}}
                                     className="mt-1 bg-yellow-400 text-black px-2 py-1 rounded text-xs font-bold"
-                                  >Edit</button>
+                                  >Editable</button>
                                 </>
                               ) : (
                                 <>
-                                  <span className="text-gray-500">-</span>
+                                  <span className="text-gray-500">No recorded</span>
                                   <button
                                     onClick={() => handleEditScore(athlete.id, i, undefined)}
                                     className="mt-1 bg-yellow-400 text-black px-2 py-1 rounded text-xs font-bold"
@@ -514,7 +540,7 @@ export default  function TournamentDetailClient({competitionId}:Props) {
                       ))}
                       <td className="py-3 px-4 border-b border-[#22304a] text-center">
                         <button
-                          onClick={() => handleAddAttempt(athlete.id)}
+                          onClick={() => handleAddAttempt()}
                           className="bg-linear-to-r from-cyan-400 to-blue-400 hover:from-cyan-300 hover:to-blue-300 text-[#0f1720] font-bold px-4 py-2 rounded-full shadow transition-colors"
                         >
                           + Add Attempt

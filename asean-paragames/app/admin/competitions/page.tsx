@@ -9,7 +9,6 @@ export interface Competition {
   disability_type: string;
   gender: string;
   schedule: string;
-  status: boolean;
 }
 
 interface Sport {
@@ -53,26 +52,13 @@ export default function HomePage() {
     const res = await fetch("/api/competitions");
     const data = await res.json();
 
-    // load any saved statuses from localStorage
-    let statusOverrides: Record<string, boolean> = {};
-    try {
-      const stored = localStorage.getItem('competition-statuses');
-      if (stored) statusOverrides = JSON.parse(stored);
-    } catch {
-      // ignore
-    }
-
-    const formatted = data.map((comp: any) => {
-      const id = comp.competition_id.toString();
-      return {
-        id,
-        sportName: comp.sport_name,
-        competitionName: comp.competition_name,
-        gender: comp.gender,
-        schedule: new Date(comp.date_time).toISOString(),
-        status: statusOverrides[id] ?? false,
-      };
-    });
+    const formatted = data.map((comp: any) => ({
+      id: comp.competition_id.toString(),
+      sportName: comp.sport_name,
+      competitionName: comp.competition_name,
+      gender: comp.gender,
+      schedule: new Date(comp.date_time).toISOString(),
+    }));
 
     setCompetitions(formatted);
   };
@@ -131,22 +117,6 @@ export default function HomePage() {
     if (response.ok) {
       fetchCompetitions();
     }}
-
-  // update status locally and persist in localStorage (no database yet)
-  const updateCompetitionStatus = (id: string, status: boolean) => {
-    setCompetitions((prev) =>
-      prev.map((c) => (c.id === id ? { ...c, status } : c))
-    );
-    try {
-      const stored = localStorage.getItem('competition-statuses');
-      const map = stored ? JSON.parse(stored) : {};
-      map[id] = status;
-      localStorage.setItem('competition-statuses', JSON.stringify(map));
-    } catch {
-      // ignore storage errors
-    }
-  };
-
   const handleDeleteSelected = async () => {
     await Promise.all(selectedIds.map(id => handleDeleteCompetition(id)));
 
@@ -228,7 +198,7 @@ export default function HomePage() {
                     : "border-gray-700 hover:border-gray-600"}
                 `}
               >
-                <div className="flex-1 grid grid-cols-5 gap-4">
+                <div className="flex-1 grid grid-cols-4 gap-4">
                   <div>
                     <p className="text-gray-400 text-sm">{c.sportName}</p>
                   </div>
@@ -251,22 +221,6 @@ export default function HomePage() {
                         minute: "2-digit",
                       })}
                     </p>
-                  </div>
-
-                  <div className="text-right">
-                    <select
-                      value={c.status ? "finished" : "ongoing"}
-                      onChange={(e) => {
-                        e.stopPropagation();
-                        const newStatus = e.target.value === "finished";
-                        updateCompetitionStatus(c.id, newStatus);
-                      }}
-                      className="bg-gray-700 text-sm rounded px-2 py-1"
-                      onClick={(e) => e.stopPropagation()}
-                    >
-                      <option value="ongoing">Ongoing</option>
-                      <option value="finished">Finished</option>
-                    </select>
                   </div>
                 </div>
               </div>
@@ -356,9 +310,26 @@ export default function HomePage() {
                 }
                 className="w-full bg-gray-700 rounded px-3 py-2"
               >
-                <option value="">Select Disability Type</option>
-                <option>Lower Limb Deficiency</option>
-                <option>Upper Limb Deficiency</option>
+                    <option value="">Select Disability Category</option>
+                    <option value="11">Visual Impairment (11)</option>
+                    <option value="12">Visual Impairment (12)</option>
+                    <option value="13">Visual Impairment (13)</option>
+                    <option value="20">Intellectual Disability (20)</option>
+                    <option value="31">Hypertonia (31)</option>
+                    <option value="32">Athetosis (32)</option>
+                    <option value="33">Ataxia (33)</option>
+                    <option value="34">Mixed (34)</option>
+                    <option value="40">Leg Length Difference (40)</option>
+                    <option value="41">Leg Amputation (41)</option>
+                    <option value="42">Arm Amputation (42)</option>
+                    <option value="43">Arm Deficiency (43)</option>
+                    <option value="44">Leg Deficiency (44)</option>
+                    <option value="45">Short Stature (45)</option>
+                    <option value="50">Wheelchair Users - Tetraplegia (50)</option>
+                    <option value="51">Wheelchair Users - Paraplegia (51)</option>
+                    <option value="52">Wheelchair Users - Polio (52)</option>
+                    <option value="53">Wheelchair Users - Amputee (53)</option>
+                    <option value="54">Wheelchair Users - Les Autres (54)</option>
               </select>
               <input
                 type="datetime-local"

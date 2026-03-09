@@ -21,7 +21,7 @@ CREATE TABLE athletes (
     is_wheelchair_dependant BOOLEAN,
     weight INT,
     height INT,
-    disability_type VARCHAR(3)
+    disability_type VARCHAR(2)
 );
 CREATE TABLE sports (
     sport_id SERIAL PRIMARY KEY,
@@ -39,12 +39,13 @@ CREATE TABLE competitions (
     gender CHAR(1),
     disability_type VARCHAR(50),
     date_time TIMESTAMP,
-    status BOOLEAN DEFAULT false
+    is_finished BOOLEAN DEFAULT false
 );
 CREATE TABLE participations (
     competition_id INT NOT NULL REFERENCES competitions(competition_id) ON DELETE CASCADE,
     athlete_id INT REFERENCES athletes(athlete_id) ON DELETE CASCADE,
     attempt_number INT,
     score FLOAT,
+    best_score FLOAT,
     PRIMARY KEY (competition_id, athlete_id,attempt_number)
 );

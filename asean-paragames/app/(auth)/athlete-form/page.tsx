@@ -119,25 +119,26 @@ export default function AthleteFormPage() {
               <div className="mt-3">
                 <h3 className="text-cyan-300 text-sm mb-2">DISABILITY CATEGORY</h3>
                 <select name="disability" value={profile.disability} onChange={handleChange} className="w-full rounded-full px-3 py-2 bg-white text-black placeholder-gray-500">
-                  <option value="">Select Disability Category</option>
-                  <option value="T20">T20</option>
-                  <option value="T32-34">T32-34</option>
-                  <option value="T35-38">T35-38</option>
-                  <option value="T40-41">T40-41</option>
-                  <option value="T42-44">T42-44</option>
-                  <option value="T45-47">T45-47</option>
-                  <option value="T51-54">T51-54</option>
-                  <option value="T61-64">T61-64</option>
-                  <option value="T71-T72">T71-T72</option>
-                  <option value="F11-13">F11-13</option>
-                  <option value="F20">F20</option>
-                  <option value="F31-34">F31-34</option>
-                  <option value="F35-38">F35-38</option>
-                  <option value="F40-41">F40-41</option>
-                  <option value="F42-44">F42-44</option>
-                  <option value="F45-46">F45-46</option>
-                  <option value="F51-57">F51-57</option>
-                  <option value="F61-64">F61-64</option>
+                    <option value="">Select Disability Category</option>
+                    <option value="11">Visual Impairment (11)</option>
+                    <option value="12">Visual Impairment (12)</option>
+                    <option value="13">Visual Impairment (13)</option>
+                    <option value="20">Intellectual Disability (20)</option>
+                    <option value="31">Hypertonia (31)</option>
+                    <option value="32">Athetosis (32)</option>
+                    <option value="33">Ataxia (33)</option>
+                    <option value="34">Mixed (34)</option>
+                    <option value="40">Leg Length Difference (40)</option>
+                    <option value="41">Leg Amputation (41)</option>
+                    <option value="42">Arm Amputation (42)</option>
+                    <option value="43">Arm Deficiency (43)</option>
+                    <option value="44">Leg Deficiency (44)</option>
+                    <option value="45">Short Stature (45)</option>
+                    <option value="50">Wheelchair Users - Tetraplegia (50)</option>
+                    <option value="51">Wheelchair Users - Paraplegia (51)</option>
+                    <option value="52">Wheelchair Users - Polio (52)</option>
+                    <option value="53">Wheelchair Users - Amputee (53)</option>
+                    <option value="54">Wheelchair Users - Les Autres (54)</option>
                 </select>
               </div>
             </div>
