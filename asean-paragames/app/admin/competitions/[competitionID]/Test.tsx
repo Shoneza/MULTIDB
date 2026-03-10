@@ -448,7 +448,7 @@ export default  function TournamentDetailClient({competitionId}:Props) {
                 : "border-transparent text-gray-400"
             }`}
           >
-            DESCRIPTION46544
+            DESCRIPTION
           </button>
 
           <button
