@@ -1,13 +1,14 @@
+import { NextResponse } from 'next/server';
 import pool from '../../db';
 
-export default async function handler(req: any, res: any) {
+export async function GET() {
     try {
         const result = await pool.query('SELECT * FROM tournaments');
-        res.status(200).json(result.rows);
+        return NextResponse.json(result.rows);
     }
     catch (error) {
         console.error('Error fetching tournaments:', error);
-        res.status(500).json({ error: 'Internal Server Error' });
+        return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
     }
 }
 
