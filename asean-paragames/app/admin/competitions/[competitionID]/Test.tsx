@@ -1,4 +1,3 @@
-
 'use client'
 import { useEffect, useState, useRef } from "react";
 import {Competition} from "../page";
@@ -603,7 +602,8 @@ export default  function TournamentDetailClient({competitionId}:Props) {
                     {[...Array(maxAttempts)].map((_, i) => (
                       <th key={i} className="py-3 px-4 border-b border-cyan-800 text-center">Attempt {i + 1}</th>
                     ))}
-                    <th className="py-3 px-4 border-b border-cyan-800 text-center"></th>
+                    <th className="py-3 px-4 border-b border-cyan-800 text-center w-32">Best score</th>
+                    <th className="py-3 px-4 border-b border-cyan-800 text-center w-24"></th>
                   </tr>
                 </thead>
                 <tbody>
@@ -669,7 +669,18 @@ export default  function TournamentDetailClient({competitionId}:Props) {
                           )}
                         </td>
                       ))}
-                      <td className="py-3 px-4 border-b border-[#22304a] text-center">
+                      <td className="py-3 px-4 border-b border-[#22304a] text-center w-32">
+                        {(() => {
+                          // คำนวณคะแนนสูงสุดจาก attempts
+                          const validScores = athlete.attempts.filter(s => s !== undefined && s !== null && s !== 0);
+                          const best = validScores.length > 0 ? Math.max(...validScores) : null;
+                          if (best === null) {
+                            return <span className="text-gray-500">ไม่มีข้อมูลคะแนน</span>;
+                          }
+                          return <span className="text-white">{best}</span>;
+                        })()}
+                      </td>
+                      <td className="py-3 px-4 border-b border-[#22304a] text-center w-24">
                         <button
                           onClick={() => handleAddAttempt()}
                           disabled={isFinished}
