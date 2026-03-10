@@ -69,7 +69,8 @@ export default function GuestCompetitionsPage() {
                 competitions.filter(c => !c.status).map((c) => (
                   <div
                     key={c.id}
-                    className="bg-gray-800 rounded-lg p-6 flex items-center gap-6 border border-gray-700"
+                    onClick={() => router.push(`/admin/competitions/${c.id}`)}
+                    className="bg-gray-800 rounded-lg p-6 flex items-center gap-6 border border-gray-700 cursor-pointer hover:border-cyan-400 transition-colors"
                   >
                     <div className="flex-1">
                       <h3 className="text-xl font-semibold text-cyan-300">
@@ -99,7 +100,8 @@ export default function GuestCompetitionsPage() {
                 competitions.filter(c => c.status).map((c) => (
                   <div
                     key={c.id}
-                    className="bg-gray-800 rounded-lg p-6 flex items-center gap-6 border border-gray-700"
+                    onClick={() => router.push(`/admin/competitions/${c.id}`)}
+                    className="bg-gray-800 rounded-lg p-6 flex items-center gap-6 border border-gray-700 cursor-pointer hover:border-cyan-400 transition-colors"
                   >
                     <div className="flex-1">
                       <h3 className="text-xl font-semibold text-cyan-300">
