@@ -10,14 +10,12 @@ export default function RootLayout({
   const pathname = usePathname();
 
   return (
-    <html lang="en">
-      <body className={''}>
-        <div className="flex w-full h-screen bg-gray-900 text-white">
-          {/* Sidebar */}
-          <aside className="w-48 bg-black p-6 border-r border-gray-700">
-            <div className="mb-8">
-              <h2 className="text-cyan-400 font-bold text-lg">ASEAN</h2>
-              <h2 className="text-cyan-400 font-bold text-lg">PARAGAMES 2025</h2>
+    <div className="flex w-full h-screen bg-gray-900 text-white">
+      {/* Sidebar */}
+      <aside className="w-48 bg-black p-6 border-r border-gray-700">
+        <div className="mb-8">
+          <h2 className="text-cyan-400 font-bold text-lg">ASEAN</h2>
+          <h2 className="text-cyan-400 font-bold text-lg">PARAGAMES 2025</h2>
             </div>
             <nav className="space-y-4">
               <ul className="space-y-2">
@@ -36,7 +34,5 @@ export default function RootLayout({
           </aside>
           <main style={{ flex: 1, padding: "2rem" }}>{children}</main>
         </div>
-      </body>
-    </html>
   );
 }
