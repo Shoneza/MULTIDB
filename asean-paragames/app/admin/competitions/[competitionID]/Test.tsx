@@ -234,6 +234,47 @@ export default  function TournamentDetailClient({competitionId}:Props) {
       }
     };
 
+    const handleDeleteCompetition = async () => {
+      if (!confirm('Are you sure you want to permanently delete this competition? This action cannot be undone.')) return;
+      try {
+        const res = await fetch('/api/competitions', {
+          method: 'DELETE',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ competitionId })
+        });
+        if (res.ok) {
+          alert('Competition deleted successfully.');
+          window.location.href = '/admin/competitions';
+        } else {
+          const error = await res.json();
+          alert('Failed to delete competition: ' + error.error);
+        }
+      } catch (error) {
+        alert('Error deleting competition');
+      }
+    };
+
+    const handleRemoveAthlete = async (athleteId: number) => {
+      if (!confirm('Are you sure you want to remove this athlete from the competition?')) return;
+      try {
+        const res = await fetch('/api/participations', {
+          method: 'DELETE',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ competition_id: competitionId, athlete_id: athleteId })
+        });
+        if (res.ok) {
+          // Refetch athletes
+          fetchParticipations();
+          fetchAvailableAthletes();
+        } else {
+          const error = await res.json();
+          alert('Failed to remove athlete: ' + error.error);
+        }
+      } catch (error) {
+        alert('Error removing athlete');
+      }
+    };
+
     async function saveScoreToDB(athleteId: number, attemptIdx: number, score: number, currentScore?: number | undefined) {
       try {
         const res = await fetch('/api/participations',{
@@ -375,19 +416,6 @@ export default  function TournamentDetailClient({competitionId}:Props) {
           grouped[p.athlete_id].attempts[p.attempt_number - 1] = p.score;
         }
       });
-
-      // ensure best_score is computed from attempts in case backend didn't set it
-      Object.values(grouped).forEach((ath) => {
-        const validScores = ath.attempts.filter(s => s !== undefined && s !== null && s !== 0) as number[];
-        if (validScores.length > 0) {
-          const calcBest = Math.max(...validScores);
-          if (ath.best_score !== calcBest) {
-            ath.best_score = calcBest;
-          }
-        } else {
-          ath.best_score = undefined;
-        }
-      });
       console.log("Grouped participations:", grouped);
       setAthletes(Object.values(grouped));
       fetchAvailableAthletes();
@@ -478,6 +506,12 @@ export default  function TournamentDetailClient({competitionId}:Props) {
                 >
                   {isFinished ? 'Finished' : 'Ongoing'}
                 </button>
+                <button
+                  onClick={handleDeleteCompetition}
+                  className="px-4 py-2 rounded-full text-sm font-medium bg-red-600 text-white hover:bg-red-700"
+                >
+                  Delete Competition
+                </button>
               </div>
             </div>
 
@@ -528,12 +562,13 @@ export default  function TournamentDetailClient({competitionId}:Props) {
                     <th className="w-16 py-2">No.</th>
                     <th className="py-2">Name</th>
                     <th className="py-2">Nationality</th>
+                    <th className="py-2">Action</th>
                   </tr>
                 </thead>
                 <tbody>
                   {athletes.length === 0 ? 
                   (<tr>
-                    <td colSpan={3} className="p-4 text-center text-gray-400">
+                    <td colSpan={4} className="p-4 text-center text-gray-400">
                       No athletes registered for this competition
                     </td>
                   </tr>) 
@@ -542,6 +577,7 @@ export default  function TournamentDetailClient({competitionId}:Props) {
                       <td className="py-3">{idx + 1}</td>
                       <td className="py-3">{a.firstName} {a.surname}</td>
                       <td className="py-3">{a.nationality}</td>
+                      <td className="py-3"><button onClick={() => handleRemoveAthlete(a.id)} className="bg-red-600 text-white px-2 py-1 rounded">Remove</button></td>
                     </tr>
                   )))}
                 </tbody>
@@ -567,7 +603,6 @@ export default  function TournamentDetailClient({competitionId}:Props) {
                     {[...Array(maxAttempts)].map((_, i) => (
                       <th key={i} className="py-3 px-4 border-b border-cyan-800 text-center">Attempt {i + 1}</th>
                     ))}
-                    <th className="py-3 px-4 border-b border-cyan-800 text-center">Best score</th>
                     <th className="py-3 px-4 border-b border-cyan-800 text-center"></th>
                   </tr>
                 </thead>
@@ -634,7 +669,6 @@ export default  function TournamentDetailClient({competitionId}:Props) {
                           )}
                         </td>
                       ))}
-                      <td className={`${athlete.best_score === undefined || athlete.best_score === 0 ? 'text-gray-500' : 'text-white'} text-center`}>{athlete.best_score === undefined || athlete.best_score === 0 ? 'No best score yet' : athlete.best_score}</td>
                       <td className="py-3 px-4 border-b border-[#22304a] text-center">
                         <button
                           onClick={() => handleAddAttempt()}

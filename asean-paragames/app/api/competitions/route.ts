@@ -48,18 +48,23 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Failed to add tournament' }, { status: 500 });
   }
 }
+
 export async function DELETE(request: NextRequest) {
   try {
-    const { searchParams } = new URL(request.url);
-    const id = searchParams.get('id');
-    if (!id) {
-      return NextResponse.json({ error: 'Tournament ID is required' }, { status: 400 });
+    const { competitionId } = await request.json();
+    if (!competitionId) {
+      return NextResponse.json({ error: 'competitionId is required' }, { status: 400 });
     }
-    await pool.query('DELETE FROM competitions WHERE competition_id = $1', [id]);
+    // First, delete participations
+    await pool.query('DELETE FROM participations WHERE competition_id = $1', [competitionId]);
+    // Then delete competition
+    const result = await pool.query('DELETE FROM competitions WHERE competition_id = $1 RETURNING *', [competitionId]);
+    if (result.rowCount === 0) {
+      return NextResponse.json({ error: 'Competition not found' }, { status: 404 });
+    }
     return NextResponse.json({ success: true });
-
   } catch (error) {
-    return NextResponse.json({ error: 'Failed to delete tournament' }, { status: 500 });
+    return NextResponse.json({ error: 'Failed to delete competition' }, { status: 500 });
   }
 }
 

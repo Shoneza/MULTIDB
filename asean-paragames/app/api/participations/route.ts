@@ -81,6 +81,13 @@ export async function POST(request: NextRequest) {
 
             return NextResponse.json(result.rows[0], { status: 201 });
         }
+        if (action === 'delete') {
+            const result = await pool.query('DELETE FROM participations WHERE competition_id = $1 AND athlete_id = $2 RETURNING *', [competition_id, athlete_id]);
+            if (result.rowCount === 0) {
+                return NextResponse.json({ error: 'Participation not found' }, { status: 404 });
+            }
+            return NextResponse.json({ success: true });
+        }
             return NextResponse.json({ error: 'Invalid action' }, { status: 400 });
     }
     catch (error) {
@@ -121,4 +128,20 @@ export async function PATCH(request: NextRequest) {
     } catch (error) {
         return NextResponse.json({ error: 'Failed to update score' }, { status: 500 });
     }
+}
+
+export async function DELETE(request: NextRequest) {
+  try {
+    const { competition_id, athlete_id } = await request.json();
+    if (!competition_id || !athlete_id) {
+      return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
+    }
+    const result = await pool.query('DELETE FROM participations WHERE competition_id = $1 AND athlete_id = $2 RETURNING *', [competition_id, athlete_id]);
+    if (result.rowCount === 0) {
+      return NextResponse.json({ error: 'Participation not found' }, { status: 404 });
+    }
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    return NextResponse.json({ error: 'Failed to remove athlete' }, { status: 500 });
+  }
 }
