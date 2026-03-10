@@ -6,7 +6,7 @@ export async function GET(request: NextRequest) {
     const {searchParams} = new URL(request.url);
     const competitionID = searchParams.get('competitionId');
     if (competitionID) {
-        const result = await pool.query('SELECT * FROM competitions WHERE competition_id = $1', [competitionID]);
+        const result = await pool.query('SELECT * FROM competitions WHERE competition_id = $1', [parseInt(competitionID)]);
         if (result.rows.length === 0) {
             return NextResponse.json({ error: 'Competition not found' }, { status: 404 });
         }
@@ -38,14 +38,28 @@ export async function POST(request: NextRequest) {
       }
       await pool.query(
         'UPDATE competitions SET is_finished = $1 WHERE competition_id = $2',
-        [status, competitionId]
+        [status, parseInt(competitionId)]
       );
+      return NextResponse.json({ success: true });
+    }
+    if (action == 'delete') {
+      const { competitionId } = body;
+      if (!competitionId) {
+        return NextResponse.json({ error: 'competitionId is required' }, { status: 400 });
+      }
+      // First, delete participations
+      await pool.query('DELETE FROM participations WHERE competition_id = $1', [parseInt(competitionId)]);
+      // Then delete competition
+      const result = await pool.query('DELETE FROM competitions WHERE competition_id = $1 RETURNING *', [parseInt(competitionId)]);
+      if (result.rowCount === 0) {
+        return NextResponse.json({ error: 'Competition not found' }, { status: 404 });
+      }
       return NextResponse.json({ success: true });
     }
 
     
   } catch (error) {
-    return NextResponse.json({ error: 'Failed to add tournament' }, { status: 500 });
+    return NextResponse.json({ error: 'Failed to process request' }, { status: 500 });
   }
 }
 

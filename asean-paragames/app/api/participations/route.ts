@@ -23,7 +23,7 @@ export async function GET(request: NextRequest) {
             WHERE p.competition_id = $1
             ORDER BY p.athlete_id, p.attempt_number
             `,
-            [competitionId]
+            [parseInt(competitionId)]
         );
         return NextResponse.json(result.rows);
     }
@@ -55,7 +55,7 @@ export async function POST(request: NextRequest) {
                 )
                 RETURNING *
                 `,
-                [competition_id, athlete_id]
+                [parseInt(competition_id), athlete_id]
             );
 
             if (result.rows.length === 0) {
@@ -76,13 +76,13 @@ export async function POST(request: NextRequest) {
                 FROM next_attempt
                 RETURNING *
                 `,
-                [competition_id, athlete_id, score ?? null]
+                [parseInt(competition_id), athlete_id, score ?? null]
             );
 
             return NextResponse.json(result.rows[0], { status: 201 });
         }
         if (action === 'delete') {
-            const result = await pool.query('DELETE FROM participations WHERE competition_id = $1 AND athlete_id = $2 RETURNING *', [competition_id, athlete_id]);
+            const result = await pool.query('DELETE FROM participations WHERE competition_id = $1 AND athlete_id = $2 RETURNING *', [parseInt(competition_id), athlete_id]);
             if (result.rowCount === 0) {
                 return NextResponse.json({ error: 'Participation not found' }, { status: 404 });
             }
@@ -119,7 +119,7 @@ export async function PATCH(request: NextRequest) {
                 AND p.athlete_id = ua.athlete_id
             RETURNING *;
             `,
-            [competition_id, athlete_id, attempt_number, score, best_score]
+            [parseInt(competition_id), athlete_id, attempt_number, score, best_score]
         );
         if (result.rowCount === 0) {
             return NextResponse.json({ error: 'Attempt not found' }, { status: 404 });
@@ -136,7 +136,7 @@ export async function DELETE(request: NextRequest) {
     if (!competition_id || !athlete_id) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     }
-    const result = await pool.query('DELETE FROM participations WHERE competition_id = $1 AND athlete_id = $2 RETURNING *', [competition_id, athlete_id]);
+    const result = await pool.query('DELETE FROM participations WHERE competition_id = $1 AND athlete_id = $2 RETURNING *', [parseInt(competition_id), athlete_id]);
     if (result.rowCount === 0) {
       return NextResponse.json({ error: 'Participation not found' }, { status: 404 });
     }
