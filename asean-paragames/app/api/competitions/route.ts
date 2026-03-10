@@ -27,12 +27,12 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { action,competitionName,sportID,gender, schedule } = body;
+    const { action,competitionName,sportID,gender, schedule, disabilityType } = body;
     if (action == 'add') {
       const result = await pool.query(
-        `INSERT INTO competitions (competition_id,competition_name, sport_id,gender, date_time)
-        VALUES (DEFAULT,$1, $2, $3, $4) RETURNING *`,
-        [ competitionName,sportID, gender, schedule]
+        `INSERT INTO competitions (competition_id,competition_name, sport_id,gender, date_time, disability_type)
+        VALUES (DEFAULT,$1, $2, $3, $4, $5) RETURNING *`,
+        [ competitionName,sportID, gender, schedule, disabilityType ]
       );
       return NextResponse.json(result.rows[0]);
     }

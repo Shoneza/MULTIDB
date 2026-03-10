@@ -325,18 +325,17 @@ export default  function TournamentDetailClient({competitionId}:Props) {
             setSportID(data.sport_id);
             setCompetitionInfo(data);
             if (data.sport_id) {
-                const sportName =  await getSportName(data.sport_id);
-                const reformattedData: Competition = {
-                    id: data.competition_id,
-                    sportName: sportName,
-                    competitionName: data.competition_name,
-                    disability_type: data.disability_type,
-                    gender: data.gender,
-                    schedule: data.date_time,
-                    isFinished: data.is_finished,
-                }
-                setCompetitionInfo(reformattedData);
-                
+              const sportName =  await getSportName(data.sport_id);
+              const reformattedData: Competition = {
+                id: data.competition_id,
+                sportName: sportName,
+                competitionName: data.competition_name,
+                disability_type: data.disability_type || data.disabilityType,
+                gender: data.gender,
+                schedule: data.date_time,
+                isFinished: data.is_finished,
+              }
+              setCompetitionInfo(reformattedData);
             }
         } catch (error) {
             console.error("Error fetching competition:", error);

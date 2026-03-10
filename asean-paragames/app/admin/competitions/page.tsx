@@ -59,6 +59,7 @@ export default function HomePage() {
       competitionName: comp.competition_name,
       gender: comp.gender,
       schedule: new Date(comp.date_time).toISOString(),
+      isFinished: comp.is_finished ?? false,
     }));
 
     setCompetitions(formatted);
@@ -79,10 +80,18 @@ export default function HomePage() {
   };
 
   const handleAddCompetition = async () => {
+    const { sportName, competitionName, gender, disabilityType, schedule } = formData;
     const res = await fetch("/api/competitions", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ ...formData, action: 'add' }),
+      body: JSON.stringify({
+        action: 'add',
+        competitionName,
+        sportID: sportName,
+        gender,
+        disabilityType,
+        schedule,
+      }),
     });
 
     if (res.ok) {
@@ -112,12 +121,15 @@ export default function HomePage() {
     );
   };
   const handleDeleteCompetition = async (id: string) => {
-    const response = await fetch(`/api/competitions?id=${id}`, {
-      method: 'DELETE',
+    const response = await fetch('/api/competitions', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'delete', competitionId: id })
     });
-    if (response.ok) {
-      fetchCompetitions();
-    }}
+    if (!response.ok) {
+      console.error('Failed to delete competition', id);
+    }
+  }
   const handleDeleteSelected = async () => {
     await Promise.all(selectedIds.map(id => handleDeleteCompetition(id)));
 
@@ -182,51 +194,109 @@ export default function HomePage() {
         </div>
 
         {/* LIST */}
-        <div className="space-y-4">
-          {competitions.map((c) => {
+        <div className="space-y-8">
+          <div>
+            <h2 className="text-2xl font-semibold text-cyan-300 mb-4">Ongoing Competitions</h2>
+            <div className="space-y-4">
+              {competitions.filter(c => !c.isFinished).length === 0 ? (
+                <p className="text-gray-400">No available competition</p>
+              ) : (
+                competitions.filter(c => !c.isFinished).map((c) => {
+                  const selected = selectedIds.includes(c.id);
+                  return (
+                    <div
+                      key={c.id}
+                      onClick={() => {toggleSelect(c.id); 
+                                      handleClickCompetition(c.id);}}
+                      className={`
+                        bg-gray-800 rounded-lg p-6 flex items-center gap-6 border transition cursor-pointer
+                        ${selected
+                          ? "border-cyan-400 bg-gray-700"
+                          : "border-gray-700 hover:border-gray-600"}
+                      `}
+                    >
+                      <div className="flex-1 grid grid-cols-4 gap-4">
+                        <div>
+                          <p className="text-gray-400 text-sm">{c.sportName}</p>
+                        </div>
 
-            const selected = selectedIds.includes(c.id);
+                        <div>
+                          <p className="text-gray-400 text-sm">{c.competitionName}</p>
+                        </div>
 
-            return (
-              <div
-                key={c.id}
-                onClick={() => {toggleSelect(c.id); 
-                                handleClickCompetition(c.id);}}
-                className={`
-                  bg-gray-800 rounded-lg p-6 flex items-center gap-6 border transition cursor-pointer
-                  ${selected
-                    ? "border-cyan-400 bg-gray-700"
-                    : "border-gray-700 hover:border-gray-600"}
-                `}
-              >
-                <div className="flex-1 grid grid-cols-4 gap-4">
-                  <div>
-                    <p className="text-gray-400 text-sm">{c.sportName}</p>
-                  </div>
+                        <div>
+                          <p className="text-gray-400 text-sm">{c.gender}</p>
+                        </div>
 
-                  <div>
-                    <p className="text-gray-400 text-sm">{c.competitionName}</p>
-                  </div>
+                        <div className="text-right">
+                          <p className="text-gray-400 text-sm">
+                            {new Date(c.schedule).toLocaleDateString()}
+                          </p>
+                          <p className="text-gray-400 text-sm">
+                            {new Date(c.schedule).toLocaleTimeString([], {
+                              hour: "2-digit",
+                              minute: "2-digit",
+                            })}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })
+              )}
+            </div>
+          </div>
+          <div>
+            <h2 className="text-2xl font-semibold text-cyan-300 mb-4">Finished Competitions</h2>
+            <div className="space-y-4">
+              {competitions.filter(c => c.isFinished).length === 0 ? (
+                <p className="text-gray-400">No available competition</p>
+              ) : (
+                competitions.filter(c => c.isFinished).map((c) => {
+                  const selected = selectedIds.includes(c.id);
+                  return (
+                    <div
+                      key={c.id}
+                      onClick={() => {toggleSelect(c.id); 
+                                      handleClickCompetition(c.id);}}
+                      className={`
+                        bg-gray-800 rounded-lg p-6 flex items-center gap-6 border transition cursor-pointer
+                        ${selected
+                          ? "border-cyan-400 bg-gray-700"
+                          : "border-gray-700 hover:border-gray-600"}
+                      `}
+                    >
+                      <div className="flex-1 grid grid-cols-4 gap-4">
+                        <div>
+                          <p className="text-gray-400 text-sm">{c.sportName}</p>
+                        </div>
 
-                  <div>
-                    <p className="text-gray-400 text-sm">{c.gender}</p>
-                  </div>
+                        <div>
+                          <p className="text-gray-400 text-sm">{c.competitionName}</p>
+                        </div>
 
-                  <div className="text-right">
-                    <p className="text-gray-400 text-sm">
-                      {new Date(c.schedule).toLocaleDateString()}
-                    </p>
-                    <p className="text-gray-400 text-sm">
-                      {new Date(c.schedule).toLocaleTimeString([], {
-                        hour: "2-digit",
-                        minute: "2-digit",
-                      })}
-                    </p>
-                  </div>
-                </div>
-              </div>
-            );
-          })}
+                        <div>
+                          <p className="text-gray-400 text-sm">{c.gender}</p>
+                        </div>
+
+                        <div className="text-right">
+                          <p className="text-gray-400 text-sm">
+                            {new Date(c.schedule).toLocaleDateString()}
+                          </p>
+                          <p className="text-gray-400 text-sm">
+                            {new Date(c.schedule).toLocaleTimeString([], {
+                              hour: "2-digit",
+                              minute: "2-digit",
+                            })}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })
+              )}
+            </div>
+          </div>
         </div>
       </main>
 
