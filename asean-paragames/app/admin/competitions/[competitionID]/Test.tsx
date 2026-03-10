@@ -421,7 +421,7 @@ export default  function TournamentDetailClient({competitionId}:Props) {
                 : "border-transparent text-gray-400"
             }`}
           >
-            DESCRIPTION
+            DESCRIPTION46544
           </button>
 
           <button
@@ -575,7 +575,7 @@ export default  function TournamentDetailClient({competitionId}:Props) {
                   
                   {athletes.length === 0 ? (    
                     <tr>
-                      <td colSpan={3 + maxAttempts + 2} className="p-4 text-center text-gray-400">
+                      <td colSpan={4} className="p-4 text-center text-gray-400">
                       No athletes available
                       </td>
                     </tr>) 
