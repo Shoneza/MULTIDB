@@ -1,4 +1,4 @@
-import TournamentDetailClient from "./tournamentDetailClient";
+import TournamentDetailClient from "./Test";
 
 type PageProps = {
   params: Promise<{ competitionID: string }>;
