@@ -375,6 +375,19 @@ export default  function TournamentDetailClient({competitionId}:Props) {
           grouped[p.athlete_id].attempts[p.attempt_number - 1] = p.score;
         }
       });
+
+      // ensure best_score is computed from attempts in case backend didn't set it
+      Object.values(grouped).forEach((ath) => {
+        const validScores = ath.attempts.filter(s => s !== undefined && s !== null && s !== 0) as number[];
+        if (validScores.length > 0) {
+          const calcBest = Math.max(...validScores);
+          if (ath.best_score !== calcBest) {
+            ath.best_score = calcBest;
+          }
+        } else {
+          ath.best_score = undefined;
+        }
+      });
       console.log("Grouped participations:", grouped);
       setAthletes(Object.values(grouped));
       fetchAvailableAthletes();
@@ -408,7 +421,7 @@ export default  function TournamentDetailClient({competitionId}:Props) {
                 : "border-transparent text-gray-400"
             }`}
           >
-            DESCRIPTION46544
+            DESCRIPTION
           </button>
 
           <button
@@ -554,6 +567,7 @@ export default  function TournamentDetailClient({competitionId}:Props) {
                     {[...Array(maxAttempts)].map((_, i) => (
                       <th key={i} className="py-3 px-4 border-b border-cyan-800 text-center">Attempt {i + 1}</th>
                     ))}
+                    <th className="py-3 px-4 border-b border-cyan-800 text-center">Best score</th>
                     <th className="py-3 px-4 border-b border-cyan-800 text-center"></th>
                   </tr>
                 </thead>
@@ -561,7 +575,7 @@ export default  function TournamentDetailClient({competitionId}:Props) {
                   
                   {athletes.length === 0 ? (    
                     <tr>
-                      <td colSpan={4} className="p-4 text-center text-gray-400">
+                      <td colSpan={3 + maxAttempts + 2} className="p-4 text-center text-gray-400">
                       No athletes available
                       </td>
                     </tr>) 
@@ -620,6 +634,7 @@ export default  function TournamentDetailClient({competitionId}:Props) {
                           )}
                         </td>
                       ))}
+                      <td className={`${athlete.best_score === undefined || athlete.best_score === 0 ? 'text-gray-500' : 'text-white'} text-center`}>{athlete.best_score === undefined || athlete.best_score === 0 ? 'No best score yet' : athlete.best_score}</td>
                       <td className="py-3 px-4 border-b border-[#22304a] text-center">
                         <button
                           onClick={() => handleAddAttempt()}
