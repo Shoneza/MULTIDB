@@ -7,6 +7,7 @@ type Section = "description" | "athletes" | "location";
 export default function TournamentDetailPage() {
 
   const [activeSection, setActiveSection] = useState<Section>("description");
+  const [athletes, setAthletes] = useState<any[]>([]);
 
   const descriptionRef = useRef<HTMLElement | null>(null);
   const athletesRef = useRef<HTMLElement | null>(null);

@@ -248,6 +248,7 @@ export default  function TournamentDetailClient({competitionId}:Props) {
                     disability_type: data.disability_type,
                     gender: data.gender,
                     schedule: data.date_time,
+                    isFinished: data.is_finished,
                 }
                 setCompetitionInfo(reformattedData);
                 

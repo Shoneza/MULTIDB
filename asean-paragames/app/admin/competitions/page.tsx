@@ -9,6 +9,7 @@ export interface Competition {
   disability_type: string;
   gender: string;
   schedule: string;
+  isFinished: boolean;
 }
 
 interface Sport {

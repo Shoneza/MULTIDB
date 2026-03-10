@@ -22,14 +22,6 @@ export default function GuestCompetitionsPage() {
       const res = await fetch("/api/competitions");
       if (!res.ok) throw new Error("network");
       const data = await res.json();
-      // read status overrides from localStorage (admin edits)
-      let overrides: Record<string, boolean> = {};
-      try {
-        const stored = localStorage.getItem('competition-statuses');
-        if (stored) overrides = JSON.parse(stored);
-      } catch {
-        // ignore
-      }
 
       const formatted = data.map((comp: any) => {
         const id = comp.competition_id.toString();
@@ -39,7 +31,7 @@ export default function GuestCompetitionsPage() {
           competitionName: comp.competition_name,
           gender: comp.gender,
           schedule: new Date(comp.date_time).toISOString(),
-          status: overrides[id] ?? false,
+          status: comp.is_finished ?? false,
         };
       });
       setCompetitions(formatted);
