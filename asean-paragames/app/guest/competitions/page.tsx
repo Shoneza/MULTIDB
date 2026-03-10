@@ -69,7 +69,7 @@ export default function GuestCompetitionsPage() {
                 competitions.filter(c => !c.status).map((c) => (
                   <div
                     key={c.id}
-                    onClick={() => router.push(`/admin/competitions/${c.id}`)}
+                    onClick={() => router.push(`/guest/competitions/${c.id}`)}
                     className="bg-gray-800 rounded-lg p-6 flex items-center gap-6 border border-gray-700 cursor-pointer hover:border-cyan-400 transition-colors"
                   >
                     <div className="flex-1">
@@ -100,7 +100,7 @@ export default function GuestCompetitionsPage() {
                 competitions.filter(c => c.status).map((c) => (
                   <div
                     key={c.id}
-                    onClick={() => router.push(`/admin/competitions/${c.id}`)}
+                    onClick={() => router.push(`/guest/competitions/${c.id}`)}
                     className="bg-gray-800 rounded-lg p-6 flex items-center gap-6 border border-gray-700 cursor-pointer hover:border-cyan-400 transition-colors"
                   >
                     <div className="flex-1">

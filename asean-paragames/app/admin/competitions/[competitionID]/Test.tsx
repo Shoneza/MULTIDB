@@ -689,94 +689,108 @@ export default  function TournamentDetailClient({competitionId}:Props) {
                   </tr>
                 </thead>
                 <tbody>
-                  
-                  {athletes.length === 0 ? (    
-                    <tr>
-                      <td colSpan={4} className="p-4 text-center text-gray-400">
-                      No athletes available
-                      </td>
-                    </tr>) 
-                    :(athletes.map((athlete, idx) => (
-                    <tr key={athlete.id} className="even:bg-[#182030] hover:bg-[#22304a] transition-colors">
-                      <td className="py-3 px-4 border-b border-[#22304a] text-center">{idx + 1}</td>
-                      <td className="py-3 px-6 border-b border-[#22304a] font-semibold text-cyan-200 whitespace-nowrap">{athlete.firstName} {athlete.surname}</td>
-                      <td className="py-3 px-4 border-b border-[#22304a] text-cyan-100">{athlete.nationality}</td>
-                      {[...Array(maxAttempts)].map((_, i) => (
-                        <td key={i} className="py-3 px-4 border-b border-[#22304a] text-center">
-                          {editing && editing.athleteId === athlete.id && editing.attemptIdx === i ? (
-                            <div className="flex flex-col items-center gap-2">
-                              <input
-                                type="number"
-                                value={editValue}
-                                onChange={e => setEditValue(e.target.value)}
-                                className="bg-gray-200 text-black rounded px-2 py-1 w-16 text-sm mb-1"
-                              />
-                              <div className="flex gap-2">
-                                <button
-                                  onClick={handleSaveScore}
-                                  className="bg-cyan-400 text-black px-2 py-1 rounded text-xs font-bold"
-                                >Save</button>
-                                <button
-                                  onClick={() => setEditing(null)}
-                                  className="bg-gray-400 text-black px-2 py-1 rounded text-xs font-bold"
-                                >Cancel</button>
+                  {/* Sort athletes by best score descending if finished */}
+                  {(() => {
+                    let sortedAthletes = athletes;
+                    if (isFinished) {
+                      sortedAthletes = [...athletes].sort((a, b) => {
+                        // Calculate best score for each athlete
+                        const bestA = Math.max(...a.attempts.filter(s => s !== undefined && s !== null && s !== 0), 0);
+                        const bestB = Math.max(...b.attempts.filter(s => s !== undefined && s !== null && s !== 0), 0);
+                        return bestB - bestA;
+                      });
+                    }
+                    if (sortedAthletes.length === 0) {
+                      return (
+                        <tr>
+                          <td colSpan={4} className="p-4 text-center text-gray-400">
+                            No athletes available
+                          </td>
+                        </tr>
+                      );
+                    }
+                    return sortedAthletes.map((athlete, idx) => (
+                      <tr key={athlete.id} className="even:bg-[#182030] hover:bg-[#22304a] transition-colors">
+                        <td className="py-3 px-4 border-b border-[#22304a] text-center">{idx + 1}</td>
+                        <td className="py-3 px-6 border-b border-[#22304a] font-semibold text-cyan-200 whitespace-nowrap">{athlete.firstName} {athlete.surname}</td>
+                        <td className="py-3 px-4 border-b border-[#22304a] text-cyan-100">{athlete.nationality}</td>
+                        {[...Array(maxAttempts)].map((_, i) => (
+                          <td key={i} className="py-3 px-4 border-b border-[#22304a] text-center">
+                            {editing && editing.athleteId === athlete.id && editing.attemptIdx === i ? (
+                              <div className="flex flex-col items-center gap-2">
+                                <input
+                                  type="number"
+                                  value={editValue}
+                                  onChange={e => setEditValue(e.target.value)}
+                                  className="bg-gray-200 text-black rounded px-2 py-1 w-16 text-sm mb-1"
+                                />
+                                <div className="flex gap-2">
+                                  <button
+                                    onClick={handleSaveScore}
+                                    className="bg-cyan-400 text-black px-2 py-1 rounded text-xs font-bold"
+                                  >Save</button>
+                                  <button
+                                    onClick={() => setEditing(null)}
+                                    className="bg-gray-400 text-black px-2 py-1 rounded text-xs font-bold"
+                                  >Cancel</button>
+                                </div>
                               </div>
-                            </div>
-                          ) : (
-                            <div className="flex flex-col items-center">
-                              {athlete.attempts[i] !== undefined && athlete.attempts[i] !== 0 && athlete.attempts[i] !== null ?  (
-                                <>
-                                  <span>{athlete.attempts[i]}</span>
-                                  <button
-                                    onClick={() =>{ console.log("Athlete attempt number = ",athlete.attempts[i]); handleEditScore(athlete.id, i, athlete.attempts[i])}}
-                                    disabled={isFinished}
-                                    className={`mt-1 px-2 py-1 rounded text-xs font-bold ${
-                                      isFinished ? 'bg-gray-600 text-gray-400 cursor-not-allowed' : 'bg-yellow-400 text-black'
-                                    }`}
-                                  >Editable</button>
-                                </>
-                              ) : (
-                                <>
-                                  <span className="text-gray-500">No recorded</span>
-                                  <button
-                                    onClick={() => handleEditScore(athlete.id, i, undefined)}
-                                    disabled={isFinished}
-                                    className={`mt-1 px-2 py-1 rounded text-xs font-bold ${
-                                      isFinished ? 'bg-gray-600 text-gray-400 cursor-not-allowed' : 'bg-yellow-400 text-black'
-                                    }`}
-                                  >Edit</button>
-                                </>
-                              )}
-                            </div>
-                          )}
+                            ) : (
+                              <div className="flex flex-col items-center">
+                                {athlete.attempts[i] !== undefined && athlete.attempts[i] !== 0 && athlete.attempts[i] !== null ?  (
+                                  <>
+                                    <span>{athlete.attempts[i]}</span>
+                                    <button
+                                      onClick={() =>{ console.log("Athlete attempt number = ",athlete.attempts[i]); handleEditScore(athlete.id, i, athlete.attempts[i])}}
+                                      disabled={isFinished}
+                                      className={`mt-1 px-2 py-1 rounded text-xs font-bold ${
+                                        isFinished ? 'bg-gray-600 text-gray-400 cursor-not-allowed' : 'bg-yellow-400 text-black'
+                                      }`}
+                                    >Editable</button>
+                                  </>
+                                ) : (
+                                  <>
+                                    <span className="text-gray-500">No recorded</span>
+                                    <button
+                                      onClick={() => handleEditScore(athlete.id, i, undefined)}
+                                      disabled={isFinished}
+                                      className={`mt-1 px-2 py-1 rounded text-xs font-bold ${
+                                        isFinished ? 'bg-gray-600 text-gray-400 cursor-not-allowed' : 'bg-yellow-400 text-black'
+                                      }`}
+                                    >Edit</button>
+                                  </>
+                                )}
+                              </div>
+                            )}
+                          </td>
+                        ))}
+                        <td className="py-3 px-4 border-b border-[#22304a] text-center w-32">
+                          {(() => {
+                            // คำนวณคะแนนสูงสุดจาก attempts
+                            const validScores = athlete.attempts.filter(s => s !== undefined && s !== null && s !== 0);
+                            const best = validScores.length > 0 ? Math.max(...validScores) : null;
+                            if (best === null) {
+                              return <span className="text-gray-500">ไม่มีข้อมูลคะแนน</span>;
+                            }
+                            return <span className="text-white">{best}</span>;
+                          })()}
                         </td>
-                      ))}
-                      <td className="py-3 px-4 border-b border-[#22304a] text-center w-32">
-                        {(() => {
-                          // คำนวณคะแนนสูงสุดจาก attempts
-                          const validScores = athlete.attempts.filter(s => s !== undefined && s !== null && s !== 0);
-                          const best = validScores.length > 0 ? Math.max(...validScores) : null;
-                          if (best === null) {
-                            return <span className="text-gray-500">ไม่มีข้อมูลคะแนน</span>;
-                          }
-                          return <span className="text-white">{best}</span>;
-                        })()}
-                      </td>
-                      <td className="py-3 px-4 border-b border-[#22304a] text-center w-24">
-                        <button
-                          onClick={() => handleAddAttempt()}
-                          disabled={isFinished}
-                          className={`font-bold px-4 py-2 rounded-full shadow transition-colors ${
-                            isFinished 
-                              ? 'bg-gray-600 text-gray-400 cursor-not-allowed' 
-                              : 'bg-linear-to-r from-cyan-400 to-blue-400 hover:from-cyan-300 hover:to-blue-300 text-[#0f1720]'
-                          }`}
-                        >
-                          + Add Attempt
-                        </button>
-                      </td>
-                    </tr>
-                  )))}
+                        <td className="py-3 px-4 border-b border-[#22304a] text-center w-24">
+                          <button
+                            onClick={() => handleAddAttempt()}
+                            disabled={isFinished}
+                            className={`font-bold px-4 py-2 rounded-full shadow transition-colors ${
+                              isFinished 
+                                ? 'bg-gray-600 text-gray-400 cursor-not-allowed' 
+                                : 'bg-linear-to-r from-cyan-400 to-blue-400 hover:from-cyan-300 hover:to-blue-300 text-[#0f1720]'
+                            }`}
+                          >
+                            + Add Attempt
+                          </button>
+                        </td>
+                      </tr>
+                    ));
+                  })()}
                 </tbody>
               </table>
             </div>
