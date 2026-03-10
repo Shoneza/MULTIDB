@@ -37,13 +37,29 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(result.rows[0]);
     }
     if (action == 'update') {
-      const { competitionId, status } = body;
-      if (!competitionId || typeof status !== 'boolean') {
-        return NextResponse.json({ error: 'competitionId and boolean status are required' }, { status: 400 });
+      const { competitionId, competitionName, sportID, gender, disabilityType, schedule, status } = body;
+      if (!competitionId) {
+        return NextResponse.json({ error: 'competitionId is required' }, { status: 400 });
       }
+      // อัปเดตทุก field ที่ส่งมา
       await pool.query(
-        'UPDATE competitions SET is_finished = $1 WHERE competition_id = $2',
-        [status, parseInt(competitionId)]
+        `UPDATE competitions SET
+          competition_name = COALESCE($2, competition_name),
+          sport_id = COALESCE($3, sport_id),
+          gender = COALESCE($4, gender),
+          disability_type = COALESCE($5, disability_type),
+          date_time = COALESCE($6, date_time),
+          is_finished = COALESCE($7, is_finished)
+        WHERE competition_id = $1`,
+        [
+          parseInt(competitionId),
+          competitionName || null,
+          sportID || null,
+          gender || null,
+          disabilityType || null,
+          schedule || null,
+          typeof status === 'boolean' ? status : null
+        ]
       );
       return NextResponse.json({ success: true });
     }

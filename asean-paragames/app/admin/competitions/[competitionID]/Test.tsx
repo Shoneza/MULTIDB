@@ -38,6 +38,20 @@ export default  function TournamentDetailClient({competitionId}:Props) {
     const [sportID, setSportID] = useState<number | null>(null);
     const [activeSection, setActiveSection] = useState<Section>("description");
     const [athletes, setAthletes] = useState<Athlete[]>([]);
+    // เพิ่ม state สำหรับ popup edit
+    const [showEditModal, setShowEditModal] = useState(false);
+    const [editForm, setEditForm] = useState({
+      sportID: sportID || "",
+      competitionName: competitionInfo?.competitionName || "",
+      gender: competitionInfo?.gender || "",
+      disabilityType: competitionInfo?.disability_type || "",
+      schedule: competitionInfo?.schedule ? new Date(competitionInfo.schedule).toISOString().slice(0,16) : "",
+    });
+    // เพิ่ม state สำหรับเก็บรายชื่อกีฬา
+    const [sportsList, setSportsList] = useState<{sport_id:number, sport_name:string}[]>([]);
+    useEffect(() => {
+      fetchSports().then(data => setSportsList(data));
+    }, []);
     const [availableAthletes, setAvailableAthletes] = useState<AvailableAthlete[]>([]);
 
     const [showSelectionModal, setShowSelectionModal] = useState(false);
@@ -428,63 +442,132 @@ export default  function TournamentDetailClient({competitionId}:Props) {
 //   }
   return (
     <div className="flex bg-black text-white min-h-0 max-h-full">
-
-      {/* ===============================
-          SIDEBAR
-      =============================== */}
-      <aside className="w-64 p-6 border-r border-gray-800 sticky top-0 h-full self-start">
-
-        <h2 className="text-cyan-400 text-xl font-bold mb-8">
-          ASEAN PARAGAMES 2025
-        </h2>
-
-        <nav className="space-y-4 text-sm">
-
-          <button
-            onClick={() => scrollTo(descriptionRef)}
-            className={`block border-l-4 pl-3 ${
-              activeSection === "description"
-                ? "border-cyan-400 text-white"
-                : "border-transparent text-gray-400"
-            }`}
-          >
-            DESCRIPTION
-          </button>
-
-          <button
-            onClick={() => scrollTo(athletesRef)}
-            className={`block border-l-4 pl-3 ${
-              activeSection === "athletes"
-                ? "border-cyan-400 text-white"
-                : "border-transparent text-gray-400"
-            }`}
-          >
-            ATHLETE LIST
-          </button>
-
-          <button
-            onClick={() => scrollTo(scoreboardRef)}
-            className={`block border-l-4 pl-3 ${
-              activeSection === "scoreboard"
-                ? "border-cyan-400 text-white"
-                : "border-transparent text-gray-400"
-            }`}
-          >
-            SCOREBOARD
-          </button>
-
-        </nav>
-      </aside>
-
-      {/* ===============================
-          CONTENT
-      =============================== */}
+      {/* ...existing code... */}
       <main className="flex-1 px-16 py-12 space-y-32 overflow-y-auto">
-
-        {/* TITLE */}
+        {/* Competition Detail header + ปุ่ม setting */}
+        {/* ปุ่ม setting ข้าง header (header อยู่ใน parent) */}
+        <div className="flex items-center gap-4 mb-12">
+          <button
+            onClick={() => {
+              setEditForm({
+                sportID: sportID || "",
+                competitionName: competitionInfo?.competitionName || "",
+                gender: competitionInfo?.gender || "",
+                disabilityType: competitionInfo?.disability_type || "",
+                schedule: competitionInfo?.schedule ? new Date(competitionInfo.schedule).toISOString().slice(0,16) : "",
+              });
+              setShowEditModal(true);
+            }}
+            className="bg-cyan-400 text-black rounded-full px-4 py-2 flex items-center gap-2"
+            title="Edit Competition"
+          >
+            <span className="material-icons">⚙️</span>
+          </button>
+        </div>
+        {/* TITLE (ชื่อการแข่งขัน) */}
         <h1 className="text-3xl font-bold text-center mb-12">
           {competitionInfo ? competitionInfo.competitionName : "Loading..."}
         </h1>
+      {/* POPUP EDIT COMPETITION */}
+      {showEditModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50" onClick={()=>setShowEditModal(false)}>
+          <div className="bg-gray-800 rounded-lg p-8 w-full max-w-md border border-gray-700 relative" onClick={e=>e.stopPropagation()}>
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-2xl font-bold">[Admin] Edit Competition Popup</h2>
+              <button onClick={()=>setShowEditModal(false)} className="text-white text-xl">×</button>
+            </div>
+            <div className="space-y-4">
+              {/* SPORT */}
+              <select
+                value={editForm.sportID}
+                onChange={e => setEditForm(f => ({ ...f, sportID: e.target.value }))}
+                className="w-full bg-gray-700 rounded px-3 py-2"
+              >
+                <option value="">Select a sport</option>
+                {sportsList.map(s => (
+                  <option key={s.sport_id} value={s.sport_id}>{s.sport_name}</option>
+                ))}
+              </select>
+              {/* GENDER */}
+              <select
+                value={editForm.gender}
+                onChange={e => setEditForm(f => ({ ...f, gender: e.target.value }))}
+                className="w-full bg-gray-700 rounded px-3 py-2"
+              >
+                <option value="">Select Gender</option>
+                <option value="M">Male</option>
+                <option value="F">Female</option>
+              </select>
+              <input
+                name="competitionName"
+                value={editForm.competitionName}
+                onChange={e => setEditForm(f => ({ ...f, competitionName: e.target.value }))}
+                placeholder="Competition name"
+                className="w-full bg-gray-700 rounded px-3 py-2"
+              />
+              <select
+                value={editForm.disabilityType}
+                onChange={e => setEditForm(f => ({ ...f, disabilityType: e.target.value }))}
+                className="w-full bg-gray-700 rounded px-3 py-2"
+              >
+                <option value="">Select Disability Category</option>
+                <option value="11">Visual Impairment (11)</option>
+                <option value="12">Visual Impairment (12)</option>
+                <option value="13">Visual Impairment (13)</option>
+                <option value="20">Intellectual Disability (20)</option>
+                <option value="31">Hypertonia (31)</option>
+                <option value="32">Athetosis (32)</option>
+                <option value="33">Ataxia (33)</option>
+                <option value="34">Mixed (34)</option>
+                <option value="40">Leg Length Difference (40)</option>
+                <option value="41">Leg Amputation (41)</option>
+                <option value="42">Arm Amputation (42)</option>
+                <option value="43">Arm Deficiency (43)</option>
+                <option value="44">Leg Deficiency (44)</option>
+                <option value="45">Short Stature (45)</option>
+                <option value="50">Wheelchair Users - Tetraplegia (50)</option>
+                <option value="51">Wheelchair Users - Paraplegia (51)</option>
+                <option value="52">Wheelchair Users - Polio (52)</option>
+                <option value="53">Wheelchair Users - Amputee (53)</option>
+                <option value="54">Wheelchair Users - Les Autres (54)</option>
+              </select>
+              <input
+                type="datetime-local"
+                name="schedule"
+                value={editForm.schedule}
+                onChange={e => setEditForm(f => ({ ...f, schedule: e.target.value }))}
+                className="w-full bg-gray-700 rounded px-3 py-2"
+              />
+              <div className="flex justify-end gap-3">
+                <button onClick={()=>setShowEditModal(false)} className="px-4 py-2">Cancel</button>
+                <button
+                  onClick={async ()=>{
+                    // ส่งข้อมูลไปแก้ไข competition
+                    await fetch('/api/competitions', {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({
+                        action: 'update',
+                        competitionId: competitionId,
+                        competitionName: editForm.competitionName,
+                        sportID: editForm.sportID,
+                        gender: editForm.gender,
+                        disabilityType: editForm.disabilityType,
+                        schedule: editForm.schedule,
+                        // เพิ่ม field อื่น ๆ ตาม backend
+                      })
+                    });
+                    setShowEditModal(false);
+                    // รีเฟรชข้อมูล
+                    fetchCompetitionInfo();
+                  }}
+                  className="bg-cyan-400 text-black px-4 py-2 rounded"
+                >Save</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
         {/* ===============================
             DESCRIPTION
