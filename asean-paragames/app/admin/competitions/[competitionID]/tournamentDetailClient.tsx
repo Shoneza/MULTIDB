@@ -187,14 +187,11 @@ export default  function TournamentDetailClient({competitionId}:Props) {
           if (a.id === editing.athleteId) {
             const newAttempts = [...a.attempts];
             newAttempts[editing.attemptIdx] = parseFloat(editValue);
-            let currentBest = a.best_score;
-            console.log(`Current best for athlete ${a.id}:`, currentBest);
-            console.log(`New score for attempt ${editing.attemptIdx + 1}:`, parseFloat(editValue));
-            console.log(`Comparing new score with current best:`, parseFloat(editValue), currentBest);
-            if (a.best_score === undefined || parseFloat(editValue) > a.best_score) {
-              
-              currentBest = parseFloat(editValue);
-            }
+            
+            // Recalculate best score from all attempts
+            const validAttempts = newAttempts.filter(attempt => attempt !== undefined && attempt !== 0 && attempt !== null);
+            const currentBest = validAttempts.length > 0 ? Math.max(...validAttempts) : undefined;
+            
             saveScoreToDB(editing.athleteId, editing.attemptIdx, parseFloat(editValue), currentBest as number);
             return { ...a, attempts: newAttempts, best_score: currentBest };
           }
