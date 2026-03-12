@@ -47,5 +47,6 @@ CREATE TABLE participations (
     attempt_number INT,
     score FLOAT,
     best_score FLOAT,
+    medal VARCHAR(10),
     PRIMARY KEY (competition_id, athlete_id,attempt_number)
 );

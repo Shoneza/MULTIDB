@@ -38,6 +38,30 @@ export default  function TournamentDetailClient({competitionId}:Props) {
     const [sportID, setSportID] = useState<number | null>(null);
     const [activeSection, setActiveSection] = useState<Section>("description");
     const [athletes, setAthletes] = useState<Athlete[]>([]);
+    // เพิ่ม state สำหรับเก็บเหรียญของแต่ละ athlete
+    const [athleteMedals, setAthleteMedals] = useState<Record<number, "none" | "gold" | "silver" | "bronze">>({});
+      // ฟังก์ชันบันทึกเหรียญลง backend
+      async function saveMedalToDB(athleteId: number, medal: "none" | "gold" | "silver" | "bronze") {
+        try {
+          const res = await fetch('/api/participations', {
+            method: 'PATCH',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              competition_id: competitionId,
+              athlete_id: athleteId,
+              medal: medal,
+            })
+          });
+          if (!res.ok) {
+            const errorText = await res.text();
+            console.warn(`Failed to save medal for athlete ${athleteId}:`, errorText);
+          }
+        } catch (error) {
+          console.error('Error saving medal:', error);
+        }
+      }
     // เพิ่ม state สำหรับ popup edit
     const [showEditModal, setShowEditModal] = useState(false);
     const [editForm, setEditForm] = useState({
@@ -205,6 +229,24 @@ export default  function TournamentDetailClient({competitionId}:Props) {
         console.log("Athletes updated:", athletes);
         fetchAvailableAthletes();
     },[athletes])
+
+    // Reset athleteMedals เมื่อ athletes เปลี่ยน (เช่น รีเฟรช)
+    useEffect(() => {
+      if (athletes.length > 0) {
+        // ถ้าไม่มีเหรียญใน state ให้ default เป็น none
+        setAthleteMedals(prev => {
+          const updated: Record<number, "none" | "gold" | "silver" | "bronze"> = {...prev};
+          athletes.forEach(a => {
+            if (!(a.id in updated)) updated[a.id] = "none";
+          });
+          // ลบ athlete ที่ไม่มีแล้ว
+          Object.keys(updated).forEach(id => {
+            if (!athletes.find(a => a.id === Number(id))) delete updated[Number(id)];
+          });
+          return updated;
+        });
+      }
+    }, [athletes]);
     function handleSaveScore() {
       if (!editing) return;
       setAthletes((athletes) =>
@@ -404,6 +446,10 @@ export default  function TournamentDetailClient({competitionId}:Props) {
       const searchParams = new URLSearchParams({ competitionId });
       const res = await fetch(`/api/participations?${searchParams.toString()}`);
       const data = await res.json();
+      if (!Array.isArray(data)) {
+        console.error('fetchParticipations: data is not array', data);
+        return;
+      }
       const grouped: Record<number, Athlete> = {};
       let maxAttempt = 0;
       for (const p of data) {
@@ -411,6 +457,8 @@ export default  function TournamentDetailClient({competitionId}:Props) {
           maxAttempt = p.attempt_number;
         }
       }
+      // เพิ่ม logic ดึงเหรียญจาก backend (เฉพาะ attempt_number === 1)
+      const medals: Record<number, "none" | "gold" | "silver" | "bronze"> = {};
       data.forEach((p:any)=> {
         if (!grouped[p.athlete_id]) {
           const attemptsArray = new Array(maxAttempt).fill(undefined);
@@ -421,13 +469,17 @@ export default  function TournamentDetailClient({competitionId}:Props) {
             attempts: attemptsArray,
             nationality: p.nationality,
             best_score: p.best_score,
-          }
-          
+          };
           grouped[p.athlete_id].attempts[p.attempt_number - 1] = p.score;
         } else {
           grouped[p.athlete_id].attempts[p.attempt_number - 1] = p.score;
         }
+        // ดึง medal เฉพาะแถว attempt_number === 1
+        if (p.attempt_number === 1) {
+          medals[p.athlete_id] = p.medal || "none";
+        }
       });
+      setAthleteMedals(medals);
       console.log("Grouped participations:", grouped);
       setAthletes(Object.values(grouped));
       fetchAvailableAthletes();
@@ -711,7 +763,33 @@ export default  function TournamentDetailClient({competitionId}:Props) {
                     }
                     return sortedAthletes.map((athlete, idx) => (
                       <tr key={athlete.id} className="even:bg-[#182030] hover:bg-[#22304a] transition-colors">
-                        <td className="py-3 px-4 border-b border-[#22304a] text-center">{idx + 1}</td>
+                        {/* แสดง dropdown และเหรียญเฉพาะหน้าหมายเลขนักกีฬา */}
+                        <td className="py-3 px-4 border-b border-[#22304a] text-center flex items-center gap-2">
+                          {isFinished && (
+                            <>
+                              <select
+                                value={athleteMedals[athlete.id] || "none"}
+                                onChange={e => {
+                                  const medal = e.target.value as "none" | "gold" | "silver" | "bronze";
+                                  setAthleteMedals(prev => ({ ...prev, [athlete.id]: medal }));
+                                  saveMedalToDB(athlete.id, medal);
+                                }}
+                                className="bg-gray-700 text-white rounded px-2 py-1 text-xs mr-2"
+                              >
+                                <option value="none">-</option>
+                                <option value="gold">🥇 Gold</option>
+                                <option value="silver">🥈 Silver</option>
+                                <option value="bronze">🥉 Bronze</option>
+                              </select>
+                              <span>
+                                {athleteMedals[athlete.id] === "gold" && "🥇"}
+                                {athleteMedals[athlete.id] === "silver" && "🥈"}
+                                {athleteMedals[athlete.id] === "bronze" && "🥉"}
+                              </span>
+                            </>
+                          )}
+                          <span>{idx + 1}</span>
+                        </td>
                         <td className="py-3 px-6 border-b border-[#22304a] font-semibold text-cyan-200 whitespace-nowrap">{athlete.firstName} {athlete.surname}</td>
                         <td className="py-3 px-4 border-b border-[#22304a] text-cyan-100">{athlete.nationality}</td>
                         {[...Array(maxAttempts)].map((_, i) => (

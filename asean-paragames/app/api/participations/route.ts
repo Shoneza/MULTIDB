@@ -17,7 +17,8 @@ export async function GET(request: NextRequest) {
                 a.nationality,
                 p.attempt_number,
                 p.score,
-                p.best_score
+                p.best_score,
+                p.medal
             FROM participations p
             JOIN athletes a ON a.athlete_id = p.athlete_id
             WHERE p.competition_id = $1
@@ -95,10 +96,29 @@ export async function POST(request: NextRequest) {
     }
 }
 export async function PATCH(request: NextRequest) {
-    try{
+    try {
         const body = await request.json();
-        const { competition_id, athlete_id, attempt_number, score,best_score } = body;
+        const { competition_id, athlete_id, attempt_number, score, best_score, medal } = body;
 
+        // Medal update (only attempt_number = 1)
+        if (medal !== undefined) {
+            if (!competition_id || !athlete_id) {
+                return NextResponse.json({ error: 'Missing required fields for medal' }, { status: 400 });
+            }
+            const result = await pool.query(
+                `UPDATE participations
+                 SET medal = $3
+                 WHERE competition_id = $1 AND athlete_id = $2 AND attempt_number = 1
+                 RETURNING *;`,
+                [parseInt(competition_id), athlete_id, medal]
+            );
+            if (result.rowCount === 0) {
+                return NextResponse.json({ error: 'Participation not found' }, { status: 404 });
+            }
+            return NextResponse.json(result.rows[0]);
+        }
+
+        // Attempt update
         if (!competition_id || !athlete_id || !attempt_number) {
             return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
         }
@@ -126,7 +146,7 @@ export async function PATCH(request: NextRequest) {
         }
         return NextResponse.json(result.rows[0]);
     } catch (error) {
-        return NextResponse.json({ error: 'Failed to update score' }, { status: 500 });
+        return NextResponse.json({ error: 'Failed to update score/medal' }, { status: 500 });
     }
 }
 
