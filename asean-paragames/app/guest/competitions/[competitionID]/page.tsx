@@ -21,6 +21,7 @@ interface Athlete {
   nationality: string;
   attempts: number[];
   best_score?: number;
+  medal?: "gold" | "silver" | "bronze" | "none";
 }
 
 export default function GuestCompetitionDetail() {
@@ -44,7 +45,7 @@ export default function GuestCompetitionDetail() {
 
   async function fetchCompetitionInfo() {
     try {
-      const res = await fetch(`/api/competitions?competitionId=${id}`);
+      const res = await fetch(`/api/competitions?competitionId=${id}`, { cache: "no-store" });
       if (!res.ok) return;
       const data = await res.json();
       setCompetitionInfo({
@@ -61,7 +62,7 @@ export default function GuestCompetitionDetail() {
 
   async function fetchParticipations() {
     const searchParams = new URLSearchParams({ competitionId: id });
-    const res = await fetch(`/api/participations?${searchParams.toString()}`);
+    const res = await fetch(`/api/participations?${searchParams.toString()}`, { cache: "no-store" });
     const data = await res.json();
     const grouped: Record<number, Athlete> = {};
     let maxAttempt = 0;
@@ -78,10 +79,12 @@ export default function GuestCompetitionDetail() {
           attempts: attemptsArray,
           nationality: p.nationality,
           best_score: p.best_score,
+          medal: p.attempt_number === 1 ? (p.medal || "none") : undefined,
         };
         grouped[p.athlete_id].attempts[p.attempt_number - 1] = p.score;
       } else {
         grouped[p.athlete_id].attempts[p.attempt_number - 1] = p.score;
+        if (p.attempt_number === 1) grouped[p.athlete_id].medal = p.medal || "none";
       }
     });
     setAthletes(Object.values(grouped));
@@ -203,7 +206,12 @@ export default function GuestCompetitionDetail() {
                     }
                     return sortedAthletes.map((athlete, idx) => (
                       <tr key={athlete.id} className="even:bg-[#182030] hover:bg-[#22304a] transition-colors">
-                        <td className="py-3 px-4 border-b border-[#22304a] text-center">{idx + 1}</td>
+                        <td className="py-3 px-4 border-b border-[#22304a] text-center">
+                          {athlete.medal === "gold" && <span title="Gold Medal">🥇</span>}
+                          {athlete.medal === "silver" && <span title="Silver Medal">🥈</span>}
+                          {athlete.medal === "bronze" && <span title="Bronze Medal">🥉</span>}
+                          <span>{idx + 1}</span>
+                        </td>
                         <td className="py-3 px-6 border-b border-[#22304a] font-semibold text-cyan-200 whitespace-nowrap">{athlete.firstName} {athlete.surname}</td>
                         <td className="py-3 px-4 border-b border-[#22304a] text-cyan-100">{athlete.nationality}</td>
                         {[...Array(maxAttempts)].map((_, i) => (
