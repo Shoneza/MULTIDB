@@ -75,21 +75,26 @@ export default function AthleteDashboard() {
   const loadSports = async () => {
     try {
       const searchParams = new URLSearchParams({
-        athleteId: currentAthleteId.toString(),
+        athleteId: session?.athleteId?.toString() || "",
       });
+      
 
-      const [sportsRes, registrationsRes] = await Promise.all([
-        fetch("/api/sports"),
-        fetch(`/api/registration?${searchParams.toString()}`),
-      ]);
-
+      const sportsRes = await fetch("/api/sports");
+      const registrationsRes = await fetch(`/api/registration?${searchParams.toString()}`,{
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+      
       const sportsData = await sportsRes.json();
       const registrationsData = await registrationsRes.json();
-
+      
+      console.log("Fetched sports:", sportsData);
+      console.log("Fetched registrations:", registrationsData);
       const registeredSportIds = new Set<number>(
         registrationsData.map((reg: any) => reg.registered_sport_id)
       );
-
+      console.log("Registered sport IDs:", registeredSportIds);
       const mergedSports: Sport[] = sportsData.map((sport: any) => ({
         sport_id: sport.sport_id,
         sport_name: sport.sport_name,
@@ -111,8 +116,10 @@ export default function AthleteDashboard() {
   };
 
   useEffect(() => {
-    loadSports();
-  }, []);
+    if (session?.athleteId && !loading) {
+      loadSports();
+    }
+  }, [session?.athleteId, loading]);
 
   useEffect(() => {
     if (joinMode) return;
