@@ -624,7 +624,7 @@ export default  function TournamentDetailClient({competitionId}:Props) {
             DESCRIPTION
         =============================== */}
         <section id="description" ref={descriptionRef}>
-          <div className="bg-gray-900 p-10 rounded-2xl max-w-3xl mx-auto">
+          <div className="bg-gray-900 p-16 rounded-2xl max-w-full w-full mx-auto">
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-2xl">DESCRIPTION</h2>
               <div className="flex items-center gap-4">
@@ -676,16 +676,17 @@ export default  function TournamentDetailClient({competitionId}:Props) {
             ATHLETES
         =============================== */}
         <section id="athletes" ref={athletesRef}>
-          <div className="bg-gray-900 p-10 rounded-2xl max-w-3xl mx-auto">
+          <div className="bg-gray-900 p-16 rounded-2xl max-w-full w-full mx-auto">
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-2xl">ATHLETES</h2>
-              <button 
-                onClick={() => setShowSelectionModal(true)} 
-                disabled={isFinished}
-                className={`px-4 py-2 rounded-full ${isFinished ? 'bg-gray-600 text-gray-400 cursor-not-allowed' : 'bg-cyan-400 text-black hover:bg-cyan-500'}`}
-              >
-                Add Athlete
-              </button>
+              {!isFinished && (
+                <button 
+                  onClick={() => setShowSelectionModal(true)} 
+                  className="px-4 py-2 rounded-full bg-cyan-400 text-black hover:bg-cyan-500"
+                >
+                  Add Athlete
+                </button>
+              )}
             </div>
 
             <div className="bg-[#0f1720] rounded-xl p-4">
@@ -695,7 +696,7 @@ export default  function TournamentDetailClient({competitionId}:Props) {
                     <th className="w-16 py-2">No.</th>
                     <th className="py-2">Name</th>
                     <th className="py-2">Nationality</th>
-                    <th className="py-2">Action</th>
+                    {!isFinished && <th className="py-2">Action</th>}
                   </tr>
                 </thead>
                 <tbody>
@@ -710,7 +711,11 @@ export default  function TournamentDetailClient({competitionId}:Props) {
                       <td className="py-3">{idx + 1}</td>
                       <td className="py-3">{a.firstName} {a.surname}</td>
                       <td className="py-3">{a.nationality}</td>
-                      <td className="py-3"><button onClick={() => handleRemoveAthlete(a.id)} className="bg-red-600 text-white px-2 py-1 rounded">Remove</button></td>
+                      {!isFinished && (
+                        <td className="py-3">
+                          <button onClick={() => handleRemoveAthlete(a.id)} className="bg-red-600 text-white px-2 py-1 rounded">Remove</button>
+                        </td>
+                      )}
                     </tr>
                   )))}
                 </tbody>
@@ -723,14 +728,17 @@ export default  function TournamentDetailClient({competitionId}:Props) {
             SCOREBOARD
         =============================== */}
         <section id="scoreboard" ref={scoreboardRef}>
-          <div className="bg-gray-900 p-10 rounded-2xl max-w-3xl mx-auto">
+          <div className="bg-gray-900 p-16 rounded-2xl max-w-full w-full mx-auto">
             <h2 className="text-2xl mb-6">SCOREBOARD</h2>
 
             <div className="overflow-x-auto rounded-xl shadow-lg">
               <table className="w-full border-separate border-spacing-0 bg-[#1a2233] text-white">
                 <thead>
                   <tr className="bg-linear-to-r from-cyan-700 to-blue-500 text-cyan-100">
-                    <th className="py-3 px-4 border-b border-cyan-800 text-left w-12">No.</th>
+                    <th className="py-3 px-4 border-b border-cyan-800 text-center w-12">No.</th>
+                    {isFinished && (
+                      <th className="py-3 px-4 border-b border-cyan-800 text-center w-20">Medal</th>
+                    )}
                     <th className="py-3 px-6 border-b border-cyan-800 text-left w-56 min-w-45">Name</th>
                     <th className="py-3 px-4 border-b border-cyan-800 text-left w-32">Nationality</th>
                     {[...Array(maxAttempts)].map((_, i) => (
@@ -763,33 +771,27 @@ export default  function TournamentDetailClient({competitionId}:Props) {
                     }
                     return sortedAthletes.map((athlete, idx) => (
                       <tr key={athlete.id} className="even:bg-[#182030] hover:bg-[#22304a] transition-colors">
-                        {/* แสดง dropdown และเหรียญเฉพาะหน้าหมายเลขนักกีฬา */}
-                        <td className="py-3 px-4 border-b border-[#22304a] text-center flex items-center gap-2">
-                          {isFinished && (
-                            <>
-                              <select
-                                value={athleteMedals[athlete.id] || "none"}
-                                onChange={e => {
-                                  const medal = e.target.value as "none" | "gold" | "silver" | "bronze";
-                                  setAthleteMedals(prev => ({ ...prev, [athlete.id]: medal }));
-                                  saveMedalToDB(athlete.id, medal);
-                                }}
-                                className="bg-gray-700 text-white rounded px-2 py-1 text-xs mr-2"
-                              >
-                                <option value="none">-</option>
-                                <option value="gold">🥇 Gold</option>
-                                <option value="silver">🥈 Silver</option>
-                                <option value="bronze">🥉 Bronze</option>
-                              </select>
-                              <span>
-                                {athleteMedals[athlete.id] === "gold" && "🥇"}
-                                {athleteMedals[athlete.id] === "silver" && "🥈"}
-                                {athleteMedals[athlete.id] === "bronze" && "🥉"}
-                              </span>
-                            </>
-                          )}
-                          <span>{idx + 1}</span>
-                        </td>
+                        {/* อันดับ */}
+                        <td className="py-3 px-4 border-b border-[#22304a] text-center">{idx + 1}</td>
+                        {/* Medal dropdown เฉพาะตอน finished */}
+                        {isFinished && (
+                          <td className="py-3 px-4 border-b border-[#22304a] text-center">
+                            <select
+                              value={athleteMedals[athlete.id] || "none"}
+                              onChange={e => {
+                                const medal = e.target.value as "none" | "gold" | "silver" | "bronze";
+                                setAthleteMedals(prev => ({ ...prev, [athlete.id]: medal }));
+                                saveMedalToDB(athlete.id, medal);
+                              }}
+                              className="bg-gray-700 text-white rounded px-2 py-1 text-xs"
+                            >
+                              <option value="none">-</option>
+                              <option value="gold">🏅</option>
+                              <option value="silver">🥈</option>
+                              <option value="bronze">🥉</option>
+                            </select>
+                          </td>
+                        )}
                         <td className="py-3 px-6 border-b border-[#22304a] font-semibold text-cyan-200 whitespace-nowrap">{athlete.firstName} {athlete.surname}</td>
                         <td className="py-3 px-4 border-b border-[#22304a] text-cyan-100">{athlete.nationality}</td>
                         {[...Array(maxAttempts)].map((_, i) => (
@@ -818,24 +820,22 @@ export default  function TournamentDetailClient({competitionId}:Props) {
                                 {athlete.attempts[i] !== undefined && athlete.attempts[i] !== 0 && athlete.attempts[i] !== null ?  (
                                   <>
                                     <span>{athlete.attempts[i]}</span>
-                                    <button
-                                      onClick={() =>{ console.log("Athlete attempt number = ",athlete.attempts[i]); handleEditScore(athlete.id, i, athlete.attempts[i])}}
-                                      disabled={isFinished}
-                                      className={`mt-1 px-2 py-1 rounded text-xs font-bold ${
-                                        isFinished ? 'bg-gray-600 text-gray-400 cursor-not-allowed' : 'bg-yellow-400 text-black'
-                                      }`}
-                                    >Editable</button>
+                                    {!isFinished && (
+                                      <button
+                                        onClick={() =>{ console.log("Athlete attempt number = ",athlete.attempts[i]); handleEditScore(athlete.id, i, athlete.attempts[i])}}
+                                        className="mt-1 px-2 py-1 rounded text-xs font-bold bg-yellow-400 text-black"
+                                      >Editable</button>
+                                    )}
                                   </>
                                 ) : (
                                   <>
                                     <span className="text-gray-500">No recorded</span>
-                                    <button
-                                      onClick={() => handleEditScore(athlete.id, i, undefined)}
-                                      disabled={isFinished}
-                                      className={`mt-1 px-2 py-1 rounded text-xs font-bold ${
-                                        isFinished ? 'bg-gray-600 text-gray-400 cursor-not-allowed' : 'bg-yellow-400 text-black'
-                                      }`}
-                                    >Edit</button>
+                                    {!isFinished && (
+                                      <button
+                                        onClick={() => handleEditScore(athlete.id, i, undefined)}
+                                        className="mt-1 px-2 py-1 rounded text-xs font-bold bg-yellow-400 text-black"
+                                      >Edit</button>
+                                    )}
                                   </>
                                 )}
                               </div>
@@ -854,17 +854,14 @@ export default  function TournamentDetailClient({competitionId}:Props) {
                           })()}
                         </td>
                         <td className="py-3 px-4 border-b border-[#22304a] text-center w-24">
-                          <button
-                            onClick={() => handleAddAttempt()}
-                            disabled={isFinished}
-                            className={`font-bold px-4 py-2 rounded-full shadow transition-colors ${
-                              isFinished 
-                                ? 'bg-gray-600 text-gray-400 cursor-not-allowed' 
-                                : 'bg-linear-to-r from-cyan-400 to-blue-400 hover:from-cyan-300 hover:to-blue-300 text-[#0f1720]'
-                            }`}
-                          >
-                            + Add Attempt
-                          </button>
+                          {!isFinished && (
+                            <button
+                              onClick={() => handleAddAttempt()}
+                              className="font-bold px-4 py-2 rounded-full shadow bg-linear-to-r from-cyan-400 to-blue-400 hover:from-cyan-300 hover:to-blue-300 text-[#0f1720]"
+                            >
+                              + Add Attempt
+                            </button>
+                          )}
                         </td>
                       </tr>
                     ));
