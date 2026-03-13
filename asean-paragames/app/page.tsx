@@ -18,9 +18,15 @@ export default function HomeLandingPage() {
 				</button>
 				<button
 					onClick={() => router.push("/register")}
-					className="px-6 py-2 bg-white text-cyan-700 rounded-full font-semibold hover:bg-gray-100 transition"
+					className="px-6 py-2 bg-white text-cyan-700 rounded-full font-semibold mr-4 hover:bg-gray-100 transition"
 				>
 					Register
+				</button>
+				<button
+					onClick={() => router.push("/guest/competitions")}
+					className="px-6 py-2 bg-cyan-500 text-white rounded-full font-semibold hover:bg-cyan-400 transition"
+				>
+					View Competition
 				</button>
 			</header>
 
