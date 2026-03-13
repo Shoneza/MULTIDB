@@ -2,59 +2,91 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { useAuth, useRequireRole } from "@/app/lib/hooks/useauth";
 
 export default function AthleteFormPage() {
   const router = useRouter();
-  const [profile, setProfile] = useState({
-    firstName: "",
-    surname: "",
+  const { authorized, loading, session } = useRequireRole(['athlete'])
+  const [form, setForm] = useState({
+    nationalId: "",
+    nameEn: "",
+    surnameEn: "",
     gender: "",
     religion: "",
     nationality: "",
     bloodType: "",
-    nationalId: "",
     teamName: "",
     weight: "",
     height: "",
-    disability: "",
+    isWheelchairDependants: false,
+    disabilityType: "",
   });
-  const [saved, setSaved] = useState(false);
+  const baseUrl = process.env.NEXTAUTH_URL || 'http://localhost:3000';
 
   // No persistence: keep form front-end only (do not load from storage)
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
-    setProfile((p) => ({ ...p, [name]: value }));
+    setForm((p) => ({ ...p, [name]: value }));
   };
-
-  const handleSave = (e: React.FormEvent) => {
+  const handleReset = () => {
+    setForm({
+      nationalId: "",
+      nameEn: "",
+      surnameEn: "",
+      gender: "",
+      religion: "",
+      nationality: "",
+      bloodType: "",
+      teamName: "",
+      weight: "",
+      height: "",
+      isWheelchairDependants: false,
+      disabilityType: "",
+  })
+}
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setSaved(true);
-    alert("Profile saved (front-end only)");
-    const user = localStorage.getItem('activeUser');
-    if (user) {
-      // save profile data
-      const storedProfiles = localStorage.getItem('userProfiles');
-      const profiles: Record<string, any> = storedProfiles ? JSON.parse(storedProfiles) : {};
-      profiles[user] = profile;
-      localStorage.setItem('userProfiles', JSON.stringify(profiles));
 
-      // if there is a pending registration for this user, finalize it
-      const pending = localStorage.getItem('pendingRegistration');
-      if (pending) {
-        try {
-          const { username, password } = JSON.parse(pending);
-          if (username === user) {
-            const storedUsers = localStorage.getItem('registeredUsers');
-            const users: Record<string, string> = storedUsers ? JSON.parse(storedUsers) : {};
-            users[username] = password;
-            localStorage.setItem('registeredUsers', JSON.stringify(users));
-            localStorage.removeItem('pendingRegistration');
-          }
-        } catch {} // ignore parse errors
-      }
+    const idStr = session?.athleteId;
+    const id = idStr ?idStr : null;
+
+    if (!id || Number.isNaN(id)) {
+      alert('Missing athleteId. Please login/register again.');
+      return;
     }
-  };
+    console.log('Submitting form for athleteId:', id);
+
+    const res = await fetch(`${baseUrl}/api/athletes`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        athlete_id: id,
+        national_id: form.nationalId,
+        name_en: form.nameEn,
+        surname_en: form.surnameEn,
+        gender: form.gender,
+        religion: form.religion,
+        nationality: form.nationality,
+        bloodType: form.bloodType,
+        team_name: form.teamName,
+        is_wheelchair_dependant: form.isWheelchairDependants,
+        weight: form.weight,
+        height: form.height,
+        disability_type: form.disabilityType,
+      }),
+  });
+
+  const result = await res.json();
+  if (res.ok) {
+    alert("Registration successful!");
+    router.push('/athlete');
+    handleReset();
+  } else {
+    alert("Registration failed: " + result.error);
+    console.log("Error details:", result);
+  }
+};
 
   return (
     <div className="min-h-screen bg-black text-white flex items-center justify-center p-8">
@@ -72,25 +104,25 @@ export default function AthleteFormPage() {
             </div>
           </div>
 
-          <form onSubmit={handleSave} className="grid grid-cols-2 gap-6">
+          <form onSubmit={handleSubmit} className="grid grid-cols-2 gap-6">
             <div>
               <h3 className="text-cyan-300 text-sm mb-4">PERSONAL INFORMATION</h3>
               <div className="grid grid-cols-2 gap-3 mb-3">
-                <input name="firstName" value={profile.firstName} onChange={handleChange} placeholder="First Name" className="rounded-full px-3 py-2 bg-white text-black placeholder-gray-500" />
-                <input name="surname" value={profile.surname} onChange={handleChange} placeholder="Surname" className="rounded-full px-3 py-2 bg-white text-black placeholder-gray-500" />
+                <input name="nameEn" value={form.nameEn} onChange={handleChange} placeholder="First Name" className="rounded-full px-3 py-2 bg-white text-black placeholder-gray-500" />
+                <input name="surnameEn" value={form.surnameEn} onChange={handleChange} placeholder="Surname" className="rounded-full px-3 py-2 bg-white text-black placeholder-gray-500" />
               </div>
               <div className="grid grid-cols-2 gap-3 mb-3">
-                <select name="gender" value={profile.gender} onChange={handleChange} className="rounded-full px-3 py-2 bg-white text-black placeholder-gray-500">
+                <select name="gender" value={form.gender} onChange={handleChange} className="rounded-full px-3 py-2 bg-white text-black placeholder-gray-500">
                   <option value="">Select gender</option>
                   <option value="M">Male</option>
                   <option value="F">Female</option>
                   <option value="O">Other</option>
                 </select>
-                <input name="religion" value={profile.religion} onChange={handleChange} placeholder="Religion" className="rounded-full px-3 py-2 bg-white text-black placeholder-gray-500" />
+                <input name="religion" value={form.religion} onChange={handleChange} placeholder="Religion" className="rounded-full px-3 py-2 bg-white text-black placeholder-gray-500" />
               </div>
               <div className="grid grid-cols-2 gap-3 mb-3">
-                <input name="nationality" value={profile.nationality} onChange={handleChange} placeholder="Nationality" className="rounded-full px-3 py-2 bg-white text-black placeholder-gray-500" />
-                <select name="bloodType" value={profile.bloodType} onChange={handleChange} className="rounded-full px-3 py-2 bg-white text-black placeholder-gray-500">
+                <input name="nationality" value={form.nationality} onChange={handleChange} placeholder="Nationality" className="rounded-full px-3 py-2 bg-white text-black placeholder-gray-500" />
+                <select name="bloodType" value={form.bloodType} onChange={handleChange} className="rounded-full px-3 py-2 bg-white text-black placeholder-gray-500">
                   <option value="">Select Blood Type</option>
                   <option value="A+">A+</option>
                   <option value="A-">A-</option>
@@ -103,22 +135,22 @@ export default function AthleteFormPage() {
                 </select>
               </div>
               <div className="mt-2">
-                <input name="nationalId" value={profile.nationalId} onChange={handleChange} placeholder="National ID" className="w-full rounded-full px-3 py-2 bg-white text-black placeholder-gray-500" />
+                <input name="nationalId" value={form.nationalId} onChange={handleChange} placeholder="National ID" className="w-full rounded-full px-3 py-2 bg-white text-black placeholder-gray-500" />
               </div>
             </div>
 
             <div>
               <h3 className="text-cyan-300 text-sm mb-4">TEAM & PHYSICAL DATA</h3>
               <div className="mb-3">
-                <input name="teamName" value={profile.teamName} onChange={handleChange} placeholder="Team Name" className="w-full rounded-full px-3 py-2 bg-white text-black placeholder-gray-500" />
+                <input name="teamName" value={form.teamName} onChange={handleChange} placeholder="Team Name" className="w-full rounded-full px-3 py-2 bg-white text-black placeholder-gray-500" />
               </div>
               <div className="grid grid-cols-2 gap-3">
-                <input name="weight" value={profile.weight} onChange={handleChange} placeholder="Weight (kg)" className="rounded-full px-3 py-2 bg-white text-black placeholder-gray-500" />
-                <input name="height" value={profile.height} onChange={handleChange} placeholder="Height (cm)" className="rounded-full px-3 py-2 bg-white text-black placeholder-gray-500" />
+                <input name="weight" value={form.weight} onChange={handleChange} placeholder="Weight (kg)" className="rounded-full px-3 py-2 bg-white text-black placeholder-gray-500" />
+                <input name="height" value={form.height} onChange={handleChange} placeholder="Height (cm)" className="rounded-full px-3 py-2 bg-white text-black placeholder-gray-500" />
               </div>
               <div className="mt-3">
                 <h3 className="text-cyan-300 text-sm mb-2">DISABILITY CATEGORY</h3>
-                <select name="disability" value={profile.disability} onChange={handleChange} className="w-full rounded-full px-3 py-2 bg-white text-black placeholder-gray-500">
+                <select name="disabilityType" value={form.disabilityType} onChange={handleChange} className="w-full rounded-full px-3 py-2 bg-white text-black placeholder-gray-500">
                     <option value="">Select Disability Category</option>
                     <option value="11">Visual Impairment (11)</option>
                     <option value="12">Visual Impairment (12)</option>

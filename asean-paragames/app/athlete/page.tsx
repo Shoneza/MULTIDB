@@ -7,18 +7,11 @@ interface Sport {
 }
 
 import { useEffect, useRef, useState } from "react";
+import { useAuth,useRequireRole } from "../lib/hooks/useauth";
+import { redirect } from "next/navigation";
+import { deleteSession } from "../lib/session";
 import { useRouter } from "next/navigation";
-
-interface Competition {
-  id: string;
-  sportName: string;
-  competitionName: string;
-  disability_type?: string;
-  gender: string;
-  schedule: string;
-  status: boolean;
-}
-
+import { Competition } from "../guest/competitions/page";
 type Section = "tournament" | "announcement" | "location" | "mycompetition";
 
 export default function AthleteDashboard() {
@@ -58,14 +51,14 @@ export default function AthleteDashboard() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [sports, setSports] = useState<Sport[]>([]);
   const [oldSelectedSports, setOldSelectedSports] = useState<number[]>([]);
-
+  const { authorized, loading, session } = useRequireRole(['athlete'])
   const [toast, setToast] = useState<{
     message: string;
     type: "success" | "error";
   } | null>(null);
 
   // Replace with real logged-in athlete id
-  const currentAthleteId = 1;
+  const currentAthleteId = session?.athleteId || -1;
 
   const tournamentRef = useRef<HTMLElement | null>(null);
   const announcementRef = useRef<HTMLElement | null>(null);
@@ -102,7 +95,7 @@ export default function AthleteDashboard() {
         sport_name: sport.sport_name,
         selected: registeredSportIds.has(sport.sport_id),
       }));
-
+      
       setSports(mergedSports);
       setSubmitted(mergedSports.some((sport) => sport.selected));
       setOldSelectedSports(
@@ -228,29 +221,7 @@ export default function AthleteDashboard() {
     }
   };
 
-  const mockTournaments = [
-    {
-      id: 1,
-      sport: "Swimming",
-      competition: "100m Freestyle S8",
-      disability: "Physical Impairment",
-      date: "10 May 2025 · 09:00 AM",
-    },
-    {
-      id: 2,
-      sport: "Cycling",
-      competition: "Road Race C4",
-      disability: "Lower Limb Disability",
-      date: "12 May 2025 · 01:30 PM",
-    },
-    {
-      id: 3,
-      sport: "Badminton",
-      competition: "Men Singles SL3",
-      disability: "Standing Lower",
-      date: "15 May 2025 · 11:00 AM",
-    },
-  ];
+
 
   const mockAnnouncements = [
     {
@@ -282,11 +253,22 @@ export default function AthleteDashboard() {
     description:
       "Main venue for track & field, swimming, and opening ceremony events.",
   };
-
+  if (loading) {
+    return <div>Loading...</div>;
+  }
+  if (!authorized) {
+    // redirect('/login');
+    return (<div>
+      <p>You are not authorized to view this page. Please login as an athlete.</p>
+    </div>);
+  }
   return (
     <div className="flex bg-black text-white min-h-screen">
       <aside className="w-64 p-6 border-r border-gray-800 sticky top-0 h-screen">
-        <h2 className="text-cyan-400 text-xl font-bold mb-8">
+        <h2 className="text-cyan-400 text-xl font-bold mb-8" onClick ={ ()=> {
+          // deleteSession();
+          // redirect('/login');
+        }}>
           ASEAN PARAGAMES 2025
         </h2>
 
@@ -547,5 +529,6 @@ export default function AthleteDashboard() {
         </div>
       )}
     </div>
+
   );
 }

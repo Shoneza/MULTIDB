@@ -3,18 +3,20 @@ DROP TABLE IF EXISTS competitions CASCADE;
 DROP TABLE IF EXISTS sports CASCADE;
 DROP TABLE IF EXISTS athletes CASCADE;
 DROP TABLE IF EXISTS registrations CASCADE;
+DROP TABLE IF EXISTS medals CASCADE;
+DROP TABLE IF EXISTS user_role CASCADE;
 CREATE TABLE athletes (
     athlete_id SERIAL PRIMARY KEY,
     username VARCHAR(50) UNIQUE NOT NULL,
     password VARCHAR(100) NOT NULL,
     email VARCHAR(100) UNIQUE NOT NULL,
     national_id VARCHAR(20),
-    name_en VARCHAR(100) NOT NULL,
-    surname_en VARCHAR(100) NOT NULL,
+    name_en VARCHAR(100),
+    surname_en VARCHAR(100),
     gender CHAR(1),
     religion VARCHAR(50),
     nationality VARCHAR(20),
-    blood_type CHAR(2),
+    blood_type CHAR(3),
     team_name VARCHAR(100),
     -- type_of_disability VARCHAR(100),
     -- disability_characteristics VARCHAR(25),
@@ -49,4 +51,15 @@ CREATE TABLE participations (
     best_score FLOAT,
     medal VARCHAR(10),
     PRIMARY KEY (competition_id, athlete_id,attempt_number)
+);
+CREATE TABLE medals (
+    competition_id INT NOT NULL REFERENCES competitions(competition_id) ON DELETE CASCADE,
+    athlete_id INT NOT NULL REFERENCES athletes(athlete_id) ON DELETE CASCADE,
+    medal_type VARCHAR(10),
+    PRIMARY KEY (competition_id, athlete_id)
+);
+CREATE TABLE user_role (
+    user_id INT NOT NULL REFERENCES athletes(athlete_id) ON DELETE CASCADE,
+    user_role VARCHAR(20) NOT NULL,
+    PRIMARY KEY (user_id, user_role)
 );

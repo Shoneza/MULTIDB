@@ -1,11 +1,20 @@
 "use client";
 
 
-import { useRouter } from "next/navigation";
+import { redirect, useRouter } from "next/navigation";
 import Image from "next/image";
+import { useAuth } from "./lib/hooks/useauth";
 
 export default function HomeLandingPage() {
+	const {session, loading} = useAuth();
 	const router = useRouter();
+	if (loading) {
+		return <div>Loading...</div>;
+	}
+	// if (session) {
+	// 	redirect("/athlete");
+	// 	return null;
+	// }
 	return (
 		<div className="min-h-screen bg-gradient-to-br from-cyan-900 via-black to-blue-900 flex flex-col">
 			{/* Header */}

@@ -9,19 +9,23 @@ VALUES
     (DEFAULT, 'Triple Jump');
 CREATE TABLE athletes (
     athlete_id SERIAL PRIMARY KEY,
-    national_id INT,
-    name_en VARCHAR(100) NOT NULL,
-    surname_en VARCHAR(100) NOT NULL,
+    username VARCHAR(50) UNIQUE NOT NULL,
+    password VARCHAR(100) NOT NULL,
+    email VARCHAR(100) UNIQUE NOT NULL,
+    national_id VARCHAR(20),
+    name_en VARCHAR(100),
+    surname_en VARCHAR(100),
     gender CHAR(1),
     religion VARCHAR(50),
     nationality VARCHAR(20),
-    blood_type CHAR(2),
+    blood_type CHAR(3),
     team_name VARCHAR(100),
     -- type_of_disability VARCHAR(100),
     -- disability_characteristics VARCHAR(25),
     is_wheelchair_dependant BOOLEAN,
     weight INT,
-    height INT
+    height INT,
+    disability_type VARCHAR(2)
 );
 INSERT INTO athletes
 VALUES 
@@ -31,6 +35,10 @@ VALUES
     (DEFAULT,'Nap','1','nap@gmail.com','123456789012','NAPHAPACH','PUNBUA','F','BUDDHISM','THAI','O+','THAILAND',TRUE,55,165,'42'),
     (DEFAULT,'Didit','2','didit@gmail.com','234567890123','DIDIT','DIANTORO','M','NONE','INDONESIAN','A+','INDONESIA',FALSE,70,18,'31'),
     (DEFAULT,'Siti','3','siti@gmail.com','345678901234','SITI','NURHALIZA','F','ISLAM','MALAYSIAN','B+','MALAYSIA',FALSE,60,170,'42');
+-- Insert Admin
+INSERT INTO athletes
+VALUES
+    (DEFAULT,'Admin','Explosion123%','admin@gmail.com','','ADMIN','USER','M','NONE','THAI','O-','THAILAND',FALSE,0,0,'');
 INSERT INTO competitions
 VALUES
     (DEFAULT,'Javaellin Throw Female Semi-Final',1,'F','42','2026-01-23 09:00:00'), -- Javelin Throw
@@ -63,4 +71,10 @@ VALUES
     ,(1,1,3,NULL,NULL)
     ,(1,3,1,NULL,NULL)
     ,(1,3,2,NULL,NULL)
-    ,(1,3,3,NULL,NULL)
+    ,(1,3,3,NULL,NULL);
+INSERT INTO user_role
+VALUES
+    (1,'athlete'),
+    (2,'athlete'),
+    (3,'athlete')
+    ,(4,'admin');
