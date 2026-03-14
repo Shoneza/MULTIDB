@@ -20,6 +20,7 @@ export async function login(state:FormState,formData: FormData) {
         }
     }
     const {  email, password } = validateFields.data;
+    console.log('Attempting login with:', { email, password });
     try {
         // const res = await pool.query('SELECT athlete_id, username FROM athletes WHERE email = $1', [email]);
         const res = await db.select({athleteId: athletes.athleteId, userName: athletes.username, password: athletes.password}).from(athletes).where(eq(athletes.email, email));
@@ -37,19 +38,19 @@ export async function login(state:FormState,formData: FormData) {
         }
         const roleRes = await fetch(`${baseUrl}/api/roles?athleteId=${user.athleteId}`);
         const roleData = await roleRes.json();
-        if (roleRes.ok) {
+        let userRole = 'athlete'; // default role
+        
+        if (roleRes.ok && roleData.role) {
             console.log('User role:', roleData.role);
+            userRole = roleData.role;
         } else {
             console.error('Failed to fetch user role:', roleData.error);
+            console.warn('Defaulting to athlete role');
         }
 
-        await createSession(user.userName, user.athleteId, roleData.role);
-        if (roleData.role === 'athlete') {
-            redirect(`${baseUrl}/athlete`);
-        }
-        else {
-            redirect(`${baseUrl}/admin/competitions`);
-        }
+        await createSession(user.userName, user.athleteId, userRole);
+        redirect(`${baseUrl}/competitions`);
+       
 
 
     } catch (error) {
@@ -122,12 +123,23 @@ export async function register(state: FormState, formData: FormData) {
             message: result.error || 'Registration failed. Please try again.',
         }
     }
-        const addRole = await fetch(`${baseUrl}/api/roles`, {
+    
+    // Assign role to newly created athlete
+    const addRole = await fetch(`${baseUrl}/api/roles`, {
         method: 'POST',
-        headers: {},
+        headers: {
+            'Content-Type': 'application/json',
+        },
         body: JSON.stringify({
-            
+            athlete_id: result.athleteId
         })});
+    
+    if (!addRole.ok) {
+        console.error('Failed to assign role:', await addRole.json());
+        return {
+            message: 'Registration succeeded but role assignment failed. Please contact support.',
+        }
+    }
     await createSession(result.userName,result.athleteId,'athlete');
 
     redirect('/athlete-form');

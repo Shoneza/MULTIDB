@@ -32,7 +32,7 @@ export default function HomeLandingPage() {
 					Register
 				</button>
 				<button
-					onClick={() => router.push("/guest/competitions")}
+					onClick={() => router.push("/competitions")}
 					className="px-6 py-2 bg-gradient-to-r from-cyan-700 to-blue-500 text-white rounded-full font-semibold hover:from-cyan-500 hover:to-blue-400 hover:shadow-lg transition"
 				>
 					View Competition

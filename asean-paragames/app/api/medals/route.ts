@@ -53,5 +53,6 @@ export async function PUT(request: NextRequest) {
         return NextResponse.json(result.rows[0]);
     } catch (error) {
         console.error('Error updating medal:', error);
+        return NextResponse.json({ error: `Failed to update medal, error = ${error}` }, { status: 500 });
     }
 }

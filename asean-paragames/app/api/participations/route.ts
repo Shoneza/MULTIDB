@@ -1,6 +1,5 @@
 import { NextResponse,NextRequest } from 'next/server';
 import pool from '../../../db';
-import { act } from 'react';
 export async function GET(request: NextRequest) {
   try {
     // const body = await request.json();
@@ -18,9 +17,10 @@ export async function GET(request: NextRequest) {
                 p.attempt_number,
                 p.score,
                 p.best_score,
-                p.medal
+                m.medal_type AS medal
             FROM participations p
             JOIN athletes a ON a.athlete_id = p.athlete_id
+            LEFT JOIN medals m ON m.competition_id = p.competition_id AND m.athlete_id = p.athlete_id
             WHERE p.competition_id = $1
             ORDER BY p.athlete_id, p.attempt_number
             `,
@@ -34,7 +34,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(result.rows);
   }
   catch (error) {
-    return NextResponse.json({ error: 'Failed to fetch participations' }, { status: 500 });
+    return NextResponse.json({ error: `Failed to fetch participations ${error}` }, { status: 500 });
   }
 }
 
