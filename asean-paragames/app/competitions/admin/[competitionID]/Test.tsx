@@ -48,7 +48,13 @@ export default  function TournamentDetailClient({competitionId}:Props) {
             medal_type: medalType,
           })
         });
-        if (res.ok) return;
+        if (res.ok) {
+          athletes.forEach(a=> {
+            if (a.id === athleteId) {
+              a.medal = medalType || "none";
+            }
+          })
+        };
         if (res.status === 404) {
           // Not found, insert
           const res2 = await fetch('/api/medals', {
@@ -64,6 +70,12 @@ export default  function TournamentDetailClient({competitionId}:Props) {
           });
           if (!res2.ok) {
             console.warn(`Failed to save medal for athlete ${athleteId}`);
+          } else {
+            athletes.forEach(a=> {
+              if (a.id === athleteId) {
+                a.medal = medalType || "none";
+              }
+            });
           }
         } else {
           console.warn(`Failed to update medal for athlete ${athleteId}`);
