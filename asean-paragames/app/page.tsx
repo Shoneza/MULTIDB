@@ -53,7 +53,7 @@ export default function HomeLandingPage() {
 							Register
 						</button>
 						<button
-							onClick={() => router.push("/competitions")}
+							onClick={() => router.push("/guest/competitions")}
 							className="px-6 py-2 bg-gradient-to-r from-cyan-700 to-blue-500 text-white rounded-full font-semibold hover:from-cyan-500 hover:to-blue-400 hover:shadow-lg transition"
 						>
 							View Competitions
@@ -73,18 +73,35 @@ export default function HomeLandingPage() {
 							Welcome to the official platform for the ASEAN Paragames 2025. Join, compete, and celebrate the spirit of sportsmanship and inclusivity across Southeast Asia.
 						</p>
 						<div className="flex gap-6 mt-4">
-							<button
-								onClick={() => router.push("/login")}
-								className="px-8 py-3 bg-cyan-400 text-black rounded-full text-lg font-bold shadow hover:bg-cyan-300 transition"
-							>
-								Login
-							</button>
-							<button
-								onClick={() => router.push("/register")}
-								className="px-8 py-3 bg-white text-cyan-700 rounded-full text-lg font-bold shadow hover:bg-gray-100 transition"
-							>
-								Register
-							</button>
+							{session ? (
+								<button
+									onClick={() => router.push("/competitions")}
+									className="px-8 py-3 bg-gradient-to-r from-cyan-700 to-blue-500 text-white rounded-full text-lg font-bold shadow hover:from-cyan-500 hover:to-blue-400 transition"
+								>
+									Go to Competitions
+								</button>
+							) : (
+								<>
+									<button
+										onClick={() => router.push("/login")}
+										className="px-8 py-3 bg-cyan-400 text-black rounded-full text-lg font-bold shadow hover:bg-cyan-300 transition"
+									>
+										Login
+									</button>
+									<button
+										onClick={() => router.push("/register")}
+										className="px-8 py-3 bg-white text-cyan-700 rounded-full text-lg font-bold shadow hover:bg-gray-100 transition"
+									>
+										Register
+									</button>
+									<button
+										onClick={() => router.push("/guest/competitions")}
+										className="px-8 py-3 bg-gradient-to-r from-cyan-700 to-blue-500 text-white rounded-full text-lg font-bold shadow hover:from-cyan-500 hover:to-blue-400 transition"
+									>
+										View Competitions
+									</button>
+								</>
+							)}
 						</div>
 					</div>
 					<div className="flex-1 flex justify-center">
