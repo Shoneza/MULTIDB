@@ -8,6 +8,10 @@ import { useAuth } from "./lib/hooks/useauth";
 export default function HomeLandingPage() {
 	const {session, loading} = useAuth();
 	const router = useRouter();
+	async function handleLogout() {
+		const { logout } = await import("./actions/auth");
+		await logout();
+	}
 	if (loading) {
 		return <div>Loading...</div>;
 	}
@@ -37,6 +41,14 @@ export default function HomeLandingPage() {
 				>
 					View Competition
 				</button>
+            {session && (
+                <button
+                    onClick={handleLogout}
+                    className="px-6 py-2 bg-red-500 text-white rounded-full font-semibold hover:bg-red-400 transition"
+                >
+                    Logout
+                </button>
+            )}
 			</header>
 
 			{/* Hero Section with Image */}

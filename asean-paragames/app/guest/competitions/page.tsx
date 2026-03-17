@@ -53,7 +53,7 @@ export default function GuestCompetitionsPage() {
         <div className="flex items-center justify-between mb-8">
           <h1 className="text-3xl font-bold">UPCOMING TOURNAMENT</h1>
           <button
-            onClick={() => router.push('/guest')}
+            onClick={() => router.push('/')}
             className="px-4 py-2 bg-cyan-400 text-black rounded"
           >
             Back
