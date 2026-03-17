@@ -95,7 +95,10 @@ export default function GuestCompetitionDetail() {
   return (
     <div className="flex bg-black text-white min-h-0 max-h-full">
       <main className="flex-1 px-16 py-12 space-y-32 overflow-y-auto">
-        <div className="mb-4">
+        <div className="flex items-center justify-between mb-8">
+          <h1 className="text-3xl font-bold">
+            {competitionInfo ? competitionInfo.competitionName : "Loading..."}
+          </h1>
           <button
             onClick={() => router.push('/competitions/guest')}
             className="px-4 py-2 bg-slate-700 text-white rounded-lg hover:bg-slate-600 transition"
@@ -103,9 +106,6 @@ export default function GuestCompetitionDetail() {
             Back
           </button>
         </div>
-        <h1 className="text-3xl font-bold text-center mb-12">
-          {competitionInfo ? competitionInfo.competitionName : "Loading..."}
-        </h1>
         {/* =============================== DESCRIPTION =============================== */}
         <section id="description" ref={descriptionRef}>
           <div className="bg-gray-900 p-10 rounded-2xl max-w-3xl mx-auto">
