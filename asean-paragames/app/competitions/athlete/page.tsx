@@ -9,13 +9,12 @@ interface Sport {
 import { useEffect, useRef, useState } from "react";
 import { useAuth,useRequireRole } from "@/app/lib/hooks/useauth";
 import { redirect } from "next/navigation";
-import { deleteSession } from "@/app//lib/session";
+import { deleteSession } from "@/app/lib/session";
 import { useRouter } from "next/navigation";
-import { Competition } from "@/app/guest/competitions/page";
-import { verifySession } from "@/app/lib/dal";
+import { Competition } from "@/app/competitions/guest/page";
 type Section = "tournament" | "announcement" | "location" | "mycompetition";
 
-export default  function AthleteDashboard() {
+export default function AthleteDashboard() {
   const router = useRouter();
   const [competitions, setCompetitions] = useState<Competition[]>([]);
 
@@ -270,7 +269,6 @@ export default  function AthleteDashboard() {
       <p>You are not authorized to view this page. Please login as an athlete.</p>
     </div>);
   }
-
   return (
     <div className="flex bg-black text-white min-h-screen">
       <aside className="w-64 p-6 border-r border-gray-800 sticky top-0 h-screen">
@@ -525,6 +523,25 @@ export default  function AthleteDashboard() {
           </div>
         )}
       </main>
+
+      {/* BACK BUTTON */}
+      <button
+        onClick={() => window.history.back()}
+        className="fixed bottom-16 left-4 px-4 py-2 bg-blue-500 text-white rounded-full font-semibold hover:bg-blue-400 transition"
+      >
+        Back
+      </button>
+
+      {/* LOGOUT BUTTON */}
+      <button
+        onClick={async () => {
+          const { logout } = await import("@/app/actions/auth");
+          await logout();
+        }}
+        className="fixed bottom-4 left-4 px-4 py-2 bg-red-500 text-white rounded-full font-semibold hover:bg-red-400 transition"
+      >
+        Logout
+      </button>
 
       {toast && (
         <div

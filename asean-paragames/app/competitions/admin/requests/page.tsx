@@ -182,6 +182,18 @@ export default function AdminTicketPage() {
         <div className="bg-[#2a2d33] h-12 rounded"></div>
       </aside>
 
+      {/* LOGOUT BUTTON */}
+      <button
+        onClick={async () => {
+          const { logout } = await import("@/app/actions/auth");
+          await logout();
+        }}
+        className="fixed bottom-4 left-4 px-4 py-2 bg-red-500 text-white rounded-full font-semibold hover:bg-red-400 transition"
+      >
+        Logout
+      </button>
+
     </div>
   );
 }
+

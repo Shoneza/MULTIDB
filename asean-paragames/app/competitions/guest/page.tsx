@@ -43,6 +43,7 @@ export interface Competition {
   gender: string;
   schedule: string;
   status: boolean;
+  disability_type?: string;
 }
 
 export default function GuestDashboard() {

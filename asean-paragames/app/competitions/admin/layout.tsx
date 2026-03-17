@@ -20,12 +20,12 @@ export default function AdminLayout({
             <nav className="space-y-4">
               <ul className="space-y-2">
                 <li className={`${pathname === '/admin/requests' ? 'bg-cyan-400 font-bold text-black' : ''} py-2 px-3 text-white font-semibold rounded`}>
-                  <Link href="/admin/requests">
+                  {/* <Link href="/admin/requests"> */}
                     Requests
-                  </Link>
+                  {/* </Link> */}
                 </li>
                 <li className={`${pathname === '/admin/competitions' ? 'bg-cyan-400 font-bold text-black' : ''} py-2 px-3 text-white font-semibold rounded`}>
-                  <Link href="/admin/competitions">
+                  <Link href="/competitions/admin">
                     Tournament List
                   </Link>
                 </li>

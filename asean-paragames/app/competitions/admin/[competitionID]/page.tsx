@@ -26,7 +26,7 @@ export default async function AdminCompetitionDetailPage({ params }: PageProps) 
       <div className="flex items-center justify-between mb-4">
         <h1 className="text-2xl font-bold">{competitionName}</h1>
         <a
-          href="/competitions/guest"
+          href="/competitions/admin"
           className="inline-block px-4 py-2 bg-slate-700 text-white rounded-lg hover:bg-slate-600 transition"
         >
           Back

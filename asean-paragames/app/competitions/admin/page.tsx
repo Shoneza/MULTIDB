@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation"; // ✅ เพิ่ม
 
 export interface Competition {
   id: string;
@@ -20,8 +19,6 @@ interface Sport {
 
 export default function AdminDashboard() {
 
-  const router = useRouter(); // ✅ เพิ่ม
-
   /* =========================
      STATE
   ========================= */
@@ -30,6 +27,7 @@ export default function AdminDashboard() {
   const [sports, setSports] = useState<Sport[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
+  // DELETE MODE
   const [deleteMode, setDeleteMode] = useState(false);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
 
@@ -110,7 +108,7 @@ export default function AdminDashboard() {
   };
 
   /* =========================
-     DELETE MODE
+     DELETE MODE LOGIC
   ========================= */
 
   const toggleSelect = (id: string) => {
@@ -122,15 +120,16 @@ export default function AdminDashboard() {
         : [...prev, id]
     );
   };
-
   const handleDeleteCompetition = async (id: string) => {
-    await fetch('/api/competitions', {
+    const response = await fetch('/api/competitions', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ action: 'delete', competitionId: id })
     });
-  };
-
+    if (!response.ok) {
+      console.error('Failed to delete competition', id);
+    }
+  }
   const handleDeleteSelected = async () => {
     await Promise.all(selectedIds.map(id => handleDeleteCompetition(id)));
 
@@ -138,35 +137,31 @@ export default function AdminDashboard() {
     setSelectedIds([]);
     setDeleteMode(false);
   };
-
   const handleClickCompetition = (id:string) => {
     if (!deleteMode) {
-      router.push(`/competitions/admin/${id}`); // ✅ ใช้ router
+      // navigate to competition details page
+      window.location.href = `/competitions/admin/${id}`;
     }
-  };
-
+  }
   const cancelDeleteMode = () => {
     setDeleteMode(false);
     setSelectedIds([]);
   };
 
-  return (
-    <div className="flex h-full w-full bg-gray-900 text-white relative">
 
-      {/* ✅ BACK BUTTON */}
-      <div className="absolute top-6 right-10">
-        <button
-          onClick={() => router.push("/")}
-          className="px-4 py-2 rounded bg-cyan-600 text-black hover:bg-cyan-500 transition"
-        >
-          BACK
-        </button>
-      </div>
+
+  return (
+    <div className="flex h-full w-full bg-gray-900 text-white">
+
+      {/* =========================
+         MAIN
+      ========================= */}
 
       <main className="flex-1 p-8 overflow-y-auto">
 
         {/* HEADER */}
         <div className="flex items-center justify-between mb-8">
+
           <div className="flex items-center gap-4">
             <h1 className="text-3xl font-bold">
               UPCOMING TOURNAMENT
@@ -200,36 +195,39 @@ export default function AdminDashboard() {
 
         {/* LIST */}
         <div className="space-y-8">
-
-          {/* ONGOING */}
           <div>
-            <h2 className="text-2xl font-semibold text-cyan-300 mb-4">
-              Ongoing Competitions
-            </h2>
-
+            <h2 className="text-2xl font-semibold text-cyan-300 mb-4">Ongoing Competitions</h2>
             <div className="space-y-4">
               {competitions.filter(c => !c.isFinished).length === 0 ? (
                 <p className="text-gray-400">No available competition</p>
               ) : (
                 competitions.filter(c => !c.isFinished).map((c) => {
                   const selected = selectedIds.includes(c.id);
-
                   return (
                     <div
                       key={c.id}
-                      onClick={() => {
-                        toggleSelect(c.id);
-                        handleClickCompetition(c.id);
-                      }}
-                      className={`bg-gray-800 rounded-lg p-6 flex items-center gap-6 border transition cursor-pointer
-                      ${selected
-                        ? "border-cyan-400 bg-gray-700"
-                        : "border-gray-700 hover:border-gray-600"}`}
+                      onClick={() => {toggleSelect(c.id); 
+                                      handleClickCompetition(c.id);}}
+                      className={`
+                        bg-gray-800 rounded-lg p-6 flex items-center gap-6 border transition cursor-pointer
+                        ${selected
+                          ? "border-cyan-400 bg-gray-700"
+                          : "border-gray-700 hover:border-gray-600"}
+                      `}
                     >
                       <div className="flex-1 grid grid-cols-4 gap-4">
-                        <p className="text-gray-400 text-sm">{c.sportName}</p>
-                        <p className="text-gray-400 text-sm">{c.competitionName}</p>
-                        <p className="text-gray-400 text-sm">{c.gender}</p>
+                        <div>
+                          <p className="text-gray-400 text-sm">{c.sportName}</p>
+                        </div>
+
+                        <div>
+                          <p className="text-gray-400 text-sm">{c.competitionName}</p>
+                        </div>
+
+                        <div>
+                          <p className="text-gray-400 text-sm">{c.gender}</p>
+                        </div>
+
                         <div className="text-right">
                           <p className="text-gray-400 text-sm">
                             {new Date(c.schedule).toLocaleDateString()}
@@ -248,36 +246,39 @@ export default function AdminDashboard() {
               )}
             </div>
           </div>
-
-          {/* FINISHED */}
           <div>
-            <h2 className="text-2xl font-semibold text-cyan-300 mb-4">
-              Finished Competitions
-            </h2>
-
+            <h2 className="text-2xl font-semibold text-cyan-300 mb-4">Finished Competitions</h2>
             <div className="space-y-4">
               {competitions.filter(c => c.isFinished).length === 0 ? (
                 <p className="text-gray-400">No available competition</p>
               ) : (
                 competitions.filter(c => c.isFinished).map((c) => {
                   const selected = selectedIds.includes(c.id);
-
                   return (
                     <div
                       key={c.id}
-                      onClick={() => {
-                        toggleSelect(c.id);
-                        handleClickCompetition(c.id);
-                      }}
-                      className={`bg-gray-800 rounded-lg p-6 flex items-center gap-6 border transition cursor-pointer
-                      ${selected
-                        ? "border-cyan-400 bg-gray-700"
-                        : "border-gray-700 hover:border-gray-600"}`}
+                      onClick={() => {toggleSelect(c.id); 
+                                      handleClickCompetition(c.id);}}
+                      className={`
+                        bg-gray-800 rounded-lg p-6 flex items-center gap-6 border transition cursor-pointer
+                        ${selected
+                          ? "border-cyan-400 bg-gray-700"
+                          : "border-gray-700 hover:border-gray-600"}
+                      `}
                     >
                       <div className="flex-1 grid grid-cols-4 gap-4">
-                        <p className="text-gray-400 text-sm">{c.sportName}</p>
-                        <p className="text-gray-400 text-sm">{c.competitionName}</p>
-                        <p className="text-gray-400 text-sm">{c.gender}</p>
+                        <div>
+                          <p className="text-gray-400 text-sm">{c.sportName}</p>
+                        </div>
+
+                        <div>
+                          <p className="text-gray-400 text-sm">{c.competitionName}</p>
+                        </div>
+
+                        <div>
+                          <p className="text-gray-400 text-sm">{c.gender}</p>
+                        </div>
+
                         <div className="text-right">
                           <p className="text-gray-400 text-sm">
                             {new Date(c.schedule).toLocaleDateString()}
@@ -296,9 +297,150 @@ export default function AdminDashboard() {
               )}
             </div>
           </div>
-
         </div>
       </main>
+
+      {/* =========================
+         FLOAT BUTTONS
+      ========================= */}
+
+      {/* CREATE */}
+      <button
+        onClick={() => setIsModalOpen(true)}
+        className="fixed bottom-8 right-8 w-12 h-12 bg-cyan-400 text-black rounded-full text-2xl font-bold shadow-lg"
+      >
+        +
+      </button>
+
+      {/* DELETE MODE ENTER */}
+      {!deleteMode && (
+        <button
+          onClick={() => setDeleteMode(true)}
+          className="fixed bottom-24 right-8 w-12 h-12 bg-cyan-400 text-black rounded-full text-2xl font-bold shadow-lg"
+        >
+          -
+        </button>
+      )}
+
+      {/* =========================
+         CREATE MODAL (UNCHANGED)
+      ========================= */}
+
+      {isModalOpen && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-gray-800 rounded-lg p-8 w-full max-w-md border border-gray-700">
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-2xl font-bold">
+                [Admin] Added Competition Popup CREATE
+              </h2>
+              <button onClick={() => setIsModalOpen(false)}>×</button>
+            </div>
+            <div className="space-y-4">
+              {/* SPORT */}
+              <select
+                value={formData.sportName}
+                onChange={(e) =>
+                  setFormData((p) => ({ ...p, sportName: e.target.value }))
+                }
+                className="w-full bg-gray-700 rounded px-3 py-2"
+              >
+                <option value="">Select a sport</option>
+                {sports.map((s) => (
+                  <option key={s.sport_id} value={s.sport_id}>
+                    {s.sport_name}
+                  </option>
+                ))}
+              </select>
+
+              {/* GENDER */}
+              <select
+                value={formData.gender}
+                onChange={(e) =>
+                  setFormData((p) => ({ ...p, gender: e.target.value }))
+                }
+                className="w-full bg-gray-700 rounded px-3 py-2"
+              >
+                <option value="">Select Gender</option>
+                <option value="M">Male</option>
+                <option value="F">Female</option>
+              </select>
+              <input
+                name="competitionName"
+                value={formData.competitionName}
+                onChange={handleInputChange}
+                placeholder="Competition name"
+                className="w-full bg-gray-700 rounded px-3 py-2"
+              />
+              <select
+                value={formData.disabilityType}
+                onChange={(e) =>
+                  setFormData((p) => ({
+                    ...p,
+                    disabilityType: e.target.value,
+                  }))
+                }
+                className="w-full bg-gray-700 rounded px-3 py-2"
+              >
+                    <option value="">Select Disability Category</option>
+                    <option value="11">Visual Impairment (11)</option>
+                    <option value="12">Visual Impairment (12)</option>
+                    <option value="13">Visual Impairment (13)</option>
+                    <option value="20">Intellectual Disability (20)</option>
+                    <option value="31">Hypertonia (31)</option>
+                    <option value="32">Athetosis (32)</option>
+                    <option value="33">Ataxia (33)</option>
+                    <option value="34">Mixed (34)</option>
+                    <option value="40">Leg Length Difference (40)</option>
+                    <option value="41">Leg Amputation (41)</option>
+                    <option value="42">Arm Amputation (42)</option>
+                    <option value="43">Arm Deficiency (43)</option>
+                    <option value="44">Leg Deficiency (44)</option>
+                    <option value="45">Short Stature (45)</option>
+                    <option value="50">Wheelchair Users - Tetraplegia (50)</option>
+                    <option value="51">Wheelchair Users - Paraplegia (51)</option>
+                    <option value="52">Wheelchair Users - Polio (52)</option>
+                    <option value="53">Wheelchair Users - Amputee (53)</option>
+                    <option value="54">Wheelchair Users - Les Autres (54)</option>
+              </select>
+              <input
+                type="datetime-local"
+                name="schedule"
+                value={formData.schedule}
+                onChange={handleInputChange}
+                className="w-full bg-gray-700 rounded px-3 py-2"
+              />
+
+              <div className="flex justify-end gap-3">
+                <button onClick={() => setIsModalOpen(false)}>Cancel</button>
+                <button
+                  onClick={handleAddCompetition}
+                  className="bg-cyan-400 text-black px-4 py-2 rounded"
+                >
+                  Save
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+      {/* BACK BUTTON */}
+      <button
+        onClick={() => window.history.back()}
+        className="fixed bottom-16 left-4 px-4 py-2 bg-blue-500 text-white rounded-full font-semibold hover:bg-blue-400 transition"
+      >
+        Back
+      </button>
+
+      {/* LOGOUT BUTTON */}
+      <button
+        onClick={async () => {
+          const { logout } = await import("../../actions/auth");
+          await logout();
+        }}
+        className="fixed bottom-4 left-4 px-4 py-2 bg-red-500 text-white rounded-full font-semibold hover:bg-red-400 transition"
+      >
+        Logout
+      </button>
     </div>
   );
 }

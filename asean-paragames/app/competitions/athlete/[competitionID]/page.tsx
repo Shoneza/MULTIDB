@@ -250,6 +250,14 @@ export default function GuestCompetitionDetail() {
             </div>
           </div>
         </section>
+         <div className="fixed bottom-16 left-4">
+        <button
+          onClick={() => router.push('/competitions/athlete')}
+          className="px-4 py-2 bg-blue-500 text-white rounded-full font-semibold hover:bg-blue-400 transition"
+        >
+          Back
+        </button>
+      </div>
       </main>
     </div>
   );

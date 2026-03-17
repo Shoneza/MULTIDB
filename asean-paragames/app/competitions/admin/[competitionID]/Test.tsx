@@ -505,7 +505,17 @@ export default  function TournamentDetailClient({competitionId}:Props) {
     }
   return (
     <div className="flex bg-black text-white min-h-0 max-h-full">
-      {/* ...existing code... */}
+      {/* LOGOUT BUTTON */}
+      <button
+        onClick={async () => {
+          const { logout } = await import("@/app/actions/auth");
+          await logout();
+        }}
+        className="fixed bottom-4 left-4 px-4 py-2 bg-red-500 text-white rounded-full font-semibold hover:bg-red-400 transition"
+      >
+        Logout
+      </button>
+
       <main className="flex-1 px-16 py-12 space-y-32 overflow-y-auto">
         {/* Competition Detail header + ปุ่ม setting */}
         {/* ปุ่ม setting ข้าง header (header อยู่ใน parent) */}
