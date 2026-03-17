@@ -10,12 +10,18 @@ export function useAuth() {
   useEffect(() => {
     // Fetch session from server
     fetch('/api/currentuser')
-      .then(res => res.json())
+      .then(res => {
+        if (!res.ok) {
+          throw new Error('Unauthorized')
+        }
+        return res.json()
+      })
       .then(data => {
         setSession(data)
         setLoading(false)
       })
       .catch(() => {
+        setSession(null)
         setLoading(false)
       })
   }, [])

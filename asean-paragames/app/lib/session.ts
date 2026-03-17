@@ -42,7 +42,11 @@ export async function createSession(userName: string,athleteId: number,role: str
  
 export async function deleteSession() {
   const cookieStore = await cookies()
-  cookieStore.delete('session')
+  cookieStore.delete('session', {
+    path: '/',
+    secure: true,
+    sameSite: 'lax',
+  })
 }
 export async function updateSession() {
   const session = (await cookies()).get('session')?.value

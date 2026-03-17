@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 
 import { redirect, useRouter } from "next/navigation";
@@ -22,33 +22,44 @@ export default function HomeLandingPage() {
 	return (
 		<div className="min-h-screen bg-gradient-to-br from-cyan-900 via-black to-blue-900 flex flex-col">
 			{/* Header */}
-			<header className="flex justify-end items-center p-8">
-				<button
-					onClick={() => router.push("/login")}
-					className="px-6 py-2 bg-cyan-400 text-black rounded-full font-semibold mr-4 hover:bg-cyan-300 transition"
-				>
-					Login
-				</button>
-				<button
-					onClick={() => router.push("/register")}
-					className="px-6 py-2 bg-white text-cyan-700 rounded-full font-semibold mr-4 hover:bg-gray-100 transition"
-				>
-					Register
-				</button>
-				<button
-					onClick={() => router.push("/competitions")}
-					className="px-6 py-2 bg-gradient-to-r from-cyan-700 to-blue-500 text-white rounded-full font-semibold hover:from-cyan-500 hover:to-blue-400 hover:shadow-lg transition"
-				>
-					View Competition
-				</button>
-            {session && (
-                <button
-                    onClick={handleLogout}
-                    className="px-6 py-2 bg-red-500 text-white rounded-full font-semibold hover:bg-red-400 transition"
-                >
-                    Logout
-                </button>
-            )}
+			<header className="flex justify-end items-center p-8 gap-3">
+				{session ? (
+					<>
+						<button
+							onClick={handleLogout}
+							className="px-6 py-2 bg-red-500 text-white rounded-full font-semibold hover:bg-red-400 transition"
+						>
+							Logout
+						</button>
+						<button
+							onClick={() => router.push("/competitions")}
+							className="px-6 py-2 bg-gradient-to-r from-cyan-700 to-blue-500 text-white rounded-full font-semibold hover:from-cyan-500 hover:to-blue-400 hover:shadow-lg transition"
+						>
+							View Competitions
+						</button>
+					</>
+				) : (
+					<>
+						<button
+							onClick={() => router.push("/login")}
+							className="px-6 py-2 bg-cyan-400 text-black rounded-full font-semibold hover:bg-cyan-300 transition"
+						>
+							Login
+						</button>
+						<button
+							onClick={() => router.push("/register")}
+							className="px-6 py-2 bg-white text-cyan-700 rounded-full font-semibold hover:bg-gray-100 transition"
+						>
+							Register
+						</button>
+						<button
+							onClick={() => router.push("/competitions")}
+							className="px-6 py-2 bg-gradient-to-r from-cyan-700 to-blue-500 text-white rounded-full font-semibold hover:from-cyan-500 hover:to-blue-400 hover:shadow-lg transition"
+						>
+							View Competitions
+						</button>
+					</>
+				)}
 			</header>
 
 			{/* Hero Section with Image */}
