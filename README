@@ -1,2 +1,32 @@
-After pull the project, run every file in "database" folder, then navigate into asean-paragames, run npm install to download libraries used.
-To start the program run 'npm run dev'
+# ASEAN ParaGames
+
+## Setup
+
+1. Run every SQL file in the `database` folder.
+2. Go to `asean-paragames` and install dependencies:
+
+```bash
+npm install
+```
+
+## Environment
+
+Create a `.env` file in `asean-paragames` and set the database values:
+
+```env
+POSTGRES_URL="postgres://<your Postgres username>:<your DB password>@127.0.0.1:5432/next-js-dashboard"
+POSTGRES_URL_NON_POOLING="postgres://<your Postgres username>:<your DB password>@127.0.0.1:5432/next-js-dashboard"
+POSTGRES_USER="<your Postgres username>"
+POSTGRES_HOST="127.0.0.1"
+POSTGRES_PASSWORD="<your DB password, leave as an empty double quoted string if none>"
+POSTGRES_DATABASE="postgres"
+SESSION_SECRET="StFLf7okClqoZCfI1oK2/+gBXbCt57mQLXCQqWAKQ0k="
+```
+
+## Run
+
+Start the app:
+
+```bash
+npm run dev
+```
