@@ -28,7 +28,7 @@ export default function LoginPage() {
             <h2 className="text-4xl font-semibold text-gray-200 mb-6 text-center">LOGIN</h2>
             <form action={formAction}>
               <div className="mb-4">
-                <label className="text-xs text-cyan-300 block mb-1">EMAILz</label>
+                <label className="text-xs text-cyan-300 block mb-1">EMAIL</label>
                 <input
                   
                   name="email"
@@ -55,7 +55,7 @@ export default function LoginPage() {
                   onClick={() => router.push('/register')}
                   className="px-4 py-2 bg-gray-200 text-black rounded-full"
                 >
-                  Registerhhhh
+                  Register
                 </button>
                 <button
                   type="submit"

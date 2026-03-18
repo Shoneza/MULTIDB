@@ -4,6 +4,7 @@
 import { redirect, useRouter } from "next/navigation";
 import Image from "next/image";
 import { useAuth } from "./lib/hooks/useauth";
+import { refresh } from "next/cache";
 
 export default function HomeLandingPage() {
 	const {session, loading} = useAuth();
@@ -11,6 +12,7 @@ export default function HomeLandingPage() {
 	async function handleLogout() {
 		const { logout } = await import("./actions/auth");
 		await logout();
+		refresh();
 	}
 	if (loading) {
 		return <div>Loading...</div>;
@@ -53,7 +55,7 @@ export default function HomeLandingPage() {
 							Register
 						</button>
 						<button
-							onClick={() => router.push("/competitions/guest")}
+							onClick={() => router.push("/guest/competitions")}
 							className="px-6 py-2 bg-gradient-to-r from-cyan-700 to-blue-500 text-white rounded-full font-semibold hover:from-cyan-500 hover:to-blue-400 hover:shadow-lg transition"
 						>
 							View Competitions
@@ -95,7 +97,7 @@ export default function HomeLandingPage() {
 										Register
 									</button>
 									<button
-										onClick={() => router.push("/guest/competitions")}
+										onClick={() => router.push("/competitions/guest")}
 										className="px-8 py-3 bg-gradient-to-r from-cyan-700 to-blue-500 text-white rounded-full text-lg font-bold shadow hover:from-cyan-500 hover:to-blue-400 transition"
 									>
 										View Competitions
@@ -118,7 +120,7 @@ export default function HomeLandingPage() {
 				</div>
 
 				{/* Mockup Competition Scoreboard */}
-				<section className="bg-gray-900 py-16 px-4 flex flex-col items-center w-full">
+				{/* <section className="bg-gray-900 py-16 px-4 flex flex-col items-center w-full">
 					<h2 className="text-3xl font-bold text-cyan-300 mb-8">Competition Scoreboard (Mockup)</h2>
 					<div className="w-full max-w-3xl overflow-x-auto rounded-xl shadow-lg">
 						<table className="w-full border-separate border-spacing-0 bg-[#1a2233] text-white">
@@ -166,7 +168,7 @@ export default function HomeLandingPage() {
 							</tbody>
 						</table>
 					</div>
-				</section>
+				</section> */}
 			</main>
 		</div>
 	);
