@@ -1,0 +1,2 @@
+After pull the project, run every file in "database" folder, then navigate into asean-paragames, run npm install to download libraries used.
+To start the program run 'npm run dev'

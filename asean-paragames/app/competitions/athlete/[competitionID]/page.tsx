@@ -2,6 +2,7 @@
 import { useEffect, useState, useRef } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { mapDisabilityCodeToName } from "../../../tool/disability";
+import { useRequireRole } from "@/app/lib/hooks/useauth";
 type Section = "description" | "athletes" | "scoreboard";
 
 interface Competition {
@@ -35,7 +36,7 @@ export default function GuestCompetitionDetail() {
   const descriptionRef = useRef<HTMLElement | null>(null);
   const athletesRef = useRef<HTMLElement | null>(null);
   const scoreboardRef = useRef<HTMLElement | null>(null);
-
+const { authorized, loading, session } = useRequireRole(['athlete'])
   useEffect(() => {
     fetchCompetitionInfo();
   }, [competitionID]);
@@ -91,7 +92,9 @@ export default function GuestCompetitionDetail() {
     setAthletes(Object.values(grouped));
     setMaxAttempts(maxAttempt);
   }
-
+  if (loading) {
+    return <div>Loading...</div>;
+  }
   return (
     <div className="flex bg-black text-white min-h-0 max-h-full">
       <main className="flex-1 px-16 py-12 space-y-32 overflow-y-auto">
@@ -100,7 +103,7 @@ export default function GuestCompetitionDetail() {
             {competitionInfo ? competitionInfo.competitionName : "Loading..."}
           </h1>
           <button
-            onClick={() => router.push('/competitions/guest')}
+            onClick={() => router.push('/competitions/athlete')}
             className="px-4 py-2 bg-slate-700 text-white rounded-lg hover:bg-slate-600 transition"
           >
             Back

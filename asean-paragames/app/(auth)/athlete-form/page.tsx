@@ -80,7 +80,7 @@ export default function AthleteFormPage() {
   const result = await res.json();
   if (res.ok) {
     alert("Registration successful!");
-    router.push('/athlete');
+    router.push('/competitions');
     handleReset();
   } else {
     alert("Registration failed: " + result.error);

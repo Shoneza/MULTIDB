@@ -376,7 +376,7 @@ export default function AthleteDashboard() {
                         competitions.filter(c => !c.status).map((c) => (
                           <div
                             key={c.id}
-                            onClick={() => router.push(`/athlete/competitions/${c.id}`)}
+                            onClick={() => router.push(`athlete/${c.id}`)}
                             className="bg-gray-800 rounded-lg p-6 flex items-center gap-6 border border-gray-700 cursor-pointer hover:border-cyan-400 transition-colors"
                           >
                             <div className="flex-1">
@@ -409,7 +409,7 @@ export default function AthleteDashboard() {
                         competitions.filter(c => c.status).map((c) => (
                           <div
                             key={c.id}
-                            onClick={() => router.push(`/athlete/competitions/${c.id}`)}
+                            onClick={() => router.push(`athlete/${c.id}`)}
                             className="bg-gray-800 rounded-lg p-6 flex items-center gap-6 border border-gray-700 cursor-pointer hover:border-cyan-400 transition-colors"
                           >
                             <div className="flex-1">
@@ -524,13 +524,13 @@ export default function AthleteDashboard() {
         )}
       </main>
 
-      {/* BACK BUTTON */}
+      {/* BACK BUTTON
       <button
         onClick={() => window.history.back()}
         className="fixed bottom-16 left-4 px-4 py-2 bg-blue-500 text-white rounded-full font-semibold hover:bg-blue-400 transition"
       >
         Back
-      </button>
+      </button> */}
 
       {/* LOGOUT BUTTON */}
       <button

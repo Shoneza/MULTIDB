@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-
+import router, { Router } from "next/router";
 export interface Competition {
   id: string;
   sportName: string;
@@ -425,7 +425,7 @@ export default function AdminDashboard() {
       )}
       {/* BACK BUTTON */}
       <button
-        onClick={() => window.history.back()}
+        onClick={() => router.push("/competitions")}
         className="fixed bottom-16 left-4 px-4 py-2 bg-blue-500 text-white rounded-full font-semibold hover:bg-blue-400 transition"
       >
         Back
